@@ -1,0 +1,23 @@
+---
+# Setup vagrant boxes
+
+- block:
+
+  - name: get vagrant boxes
+    shell: "vagrant box add {{ box.name }} --provider {{ box.provider }}"
+    with_items: "{{ vagrant_provisioner_boxes }}"
+    register: result_vagrant_box_add
+    failed_when: >
+      result_vagrant_box_add.rc == 1
+      and "The box you're attempting to add already exists."
+        not in result_vagrant_box_add.stderr
+    changed_when: >
+      result_vagrant_box_add.rc == 0
+      and "Successfully added box" in result_vagrant_box_add.stdout
+    loop_control:
+      label: "{{ box.name }}"
+      loop_var: box
+
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::boxes

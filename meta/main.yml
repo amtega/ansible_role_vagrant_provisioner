@@ -1,0 +1,24 @@
+---
+# Role dependencies
+
+galaxy_info:
+  author: Daniel Sánchez Fábregas
+  description: Setup vagrant provisioner
+  company: Amtega - Xunta de Galicia
+  license: GPLv3
+  min_ansible_version: 2.2
+  platforms:
+  - name: Fedora
+    versions:
+    - 25
+  - name: EL
+    versions:
+    - 6
+    - 7
+  galaxy_tags:
+    - vagrant
+    - system
+
+dependencies:
+  # - vagrant_engine
+  - ansible_vagrant_engine

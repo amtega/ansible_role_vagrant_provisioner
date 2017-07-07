@@ -1,0 +1,8 @@
+---
+# Tasks for tesing role
+
+- name: test vagrant_engine the role
+  hosts: localhost
+  tasks:
+    - include_role:
+        name: ansible_vagrant_provisioner

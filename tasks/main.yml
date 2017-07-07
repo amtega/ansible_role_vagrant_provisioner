@@ -1,0 +1,21 @@
+---
+# Role tasks
+
+- debug:
+    msg: '{{ "░" * 400 }} Begin vagrant_provisioner {{ "░" * 400 }}'
+
+- name: setup boxes
+  include: setup_boxes.yml
+  static: no
+  when: vagrant_provisioner_boxes | length > 0
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::boxes
+
+- name: setup virtual machines
+  include: setup_vms.yml
+  static: no
+  when: vagrant_provisioner_vms | length > 0
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::vms

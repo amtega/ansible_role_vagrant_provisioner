@@ -1,0 +1,13 @@
+---
+# Setup vagrant vms
+
+- include: setup_vagrantfile.yml
+  with_items: >
+    {{ vagrant_provisioner_vms }}
+  loop_control:
+    label: >-
+      {{ vm.hostname }}
+    loop_var: vm
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::vms

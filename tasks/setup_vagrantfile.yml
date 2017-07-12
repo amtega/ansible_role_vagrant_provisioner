@@ -1,0 +1,62 @@
+---
+# Setup Vagrantfile
+
+- set_fact:
+    vm_path: >-
+      {{ vms_directory | expanduser }}/virtual_machines/{{ vm.subdirectory }}
+
+- name: "({{ vm.hostname }}) create vagrant vm directories"
+  file:
+    path: >-
+      {{ vm_path }}
+    state: directory
+    force: yes
+    recurse: yes
+
+- name: "({{ vm.hostname }}) create vagrant file"
+  template:
+    src: Vagrantfile.j2
+    dest: >-
+      {{ vm_path }}/Vagrantfile
+    force: yes
+    backup: yes
+  register: result_vagrantfile
+
+- name: "({{ vm.hostname }}) vagrant status"
+  shell: "vagrant status --machine-readable"
+  become: true
+  args:
+    chdir: >-
+      {{ vm_path }}
+  changed_when: false
+  register: result_vagrantf_status
+
+- name: "({{ vm.hostname }}) vagrant destroy"
+  shell: "vagrant destroy --machine-readable"
+  become: true
+  args:
+    chdir: >-
+      {{ vm_path }}
+  when: >-
+    result_vagrantfile.changed
+    and ',state,not_created' not in result_vagrantf_status
+  failed_when: false
+
+  # TODO: stop running machines not listed in vagrant or virsh list
+  # and erase its /var/lib/libvirt/images/* images (!?!)
+
+- name: "({{ vm.hostname }}) vagrant up"
+  shell: "vagrant up --machine-readable"
+  register: result_vagrant_up
+  become: true
+  args:
+    chdir: >-
+      {{ vm_path }}
+  when: >-
+    ',state,not_created' in result_vagrantf_status
+  changed_when: >
+    result_vagrant_up.rc == 0
+    and not "Machine already provisioned." in result_vagrant_up.stdout
+  failed_when: >-
+    ',ui,error,' in result_vagrant_up.stdout
+    or result_vagrant_up.rc == 1

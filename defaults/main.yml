@@ -15,7 +15,27 @@ vagrant_provisioner_boxes:
 # following values
 # TODO
 
-vagrant_provisioner_vms: []
+vagrant_provisioner_vms:
+  - name: "centos_7"
+    hostname: "centos-7"
+    subdirectory: "centos_7"
+    box:
+      name: "centos/7"
+      provider: "libvirt"
+    driver: kvm
+    memory: 1024
+    cpus: 1
+  - name: "fedora_25_cloud_base"
+    hostname: "fedora-25-cloud-base"
+    subdirectory: "fedora_25_cloud_base"
+    box:
+      name: "fedora/25-cloud-base"
+      provider: "libvirt"
+    driver: kvm
+    memory: 1024
+    cpus: 1
+
+vms_directory: ~/git/ansible_vagrant_provisioner/test
 #
 # # box options to apply if no other ones are specified in the specific
 # # box dictionary of the vagrant_provisioner_boxes variable. See

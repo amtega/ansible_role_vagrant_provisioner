@@ -1,13 +1,91 @@
 ---
 # Setup vagrant vms
 
-- include: setup_vagrantfile.yml
-  with_items: >
-    {{ vagrant_provisioner_vms }}
-  loop_control:
-    label: >-
-      {{ vm.hostname }}
-    loop_var: vm
-  tags:
-    - role::vagrant_provisioner
-    - role::vagrant_provisioner::vms
+- set_fact:
+    vm_path: >-
+      {{ vms_directory | expanduser }}/virtual_machines/{{ vm.subdirectory }}
+
+- name: "({{ vm.hostname }}) create vagrant vm directories"
+  file:
+    path: >-
+      {{ vm_path }}
+    state: directory
+    force: yes
+    recurse: yes
+
+- name: "({{ vm.hostname }}) create vagrant file"
+  template:
+    src: Vagrantfile.j2
+    dest: >-
+      {{ vm_path }}/Vagrantfile
+    force: yes
+    backup: yes
+  register: result_vagrantfile
+
+- name: "({{ vm.hostname }}) vagrant status"
+  shell: "vagrant status --machine-readable"
+  become: true
+  args:
+    chdir: >-
+      {{ vm_path }}
+  changed_when: false
+  register: result_vagrantf_status
+
+- name: "({{ vm.hostname }}) vagrant destroy"
+  shell: "vagrant destroy --machine-readable"
+  become: true
+  args:
+    chdir: >-
+      {{ vm_path }}
+  when: >-
+    result_vagrantfile.changed
+    and ',state,not_created' not in result_vagrantf_status
+  failed_when: false
+
+  # TODO: stop running machines not listed in vagrant or virsh list
+  # and erase its /var/lib/libvirt/images/* images (!?!)
+
+- name: "({{ vm.hostname }}) vagrant up"
+  shell: "vagrant up --machine-readable"
+  register: result_vagrant_up
+  become: true
+  args:
+    chdir: >-
+      {{ vm_path }}
+  when: >-
+    ',state,not_created' in result_vagrantf_status
+  changed_when: >
+    result_vagrant_up.rc == 0
+    and not "Machine already provisioned." in result_vagrant_up.stdout
+  failed_when: >-
+    ',ui,error,' in result_vagrant_up.stdout
+    or result_vagrant_up.rc == 1
+
+- name: get vm ip address
+  shell: "vagrant ssh-config"
+  register: result_vagrant_ssh_config
+  become: true
+  args:
+    chdir: >-
+      {{ vm_path }}
+  changed_when: false
+
+- debug:
+    var: result_vagrant_ssh_config
+- debug:
+    msg: >-
+      IP:{{ result_vagrant_ssh_config.stdout_lines[1][11:] }}
+- debug:
+    # https://docs.python.org/2/library/re.html#regular-expression-syntax
+    # (?s) "dot matches all"
+    # (?m) "multi line"
+    msg: >-
+      IdentityFile:{{ result_vagrant_ssh_config.stdout | regex_replace('^(?sm).*\n *IdentityFile *(?P<identityfile>[^\n]+)\n.*$', '\1') }}
+
+# "stdout": "Host fedora_25_cloud_base\n  HostName 192.168.121.72\n  User vagrant\n  Port 22\n  UserKnownHostsFile /dev/null\n  StrictHostKeyChecking no\n  PasswordAuthentication no\n  IdentityFile /home/dsanfab/git/ansible_vagrant_provisioner/test/virtual_machines/fedora_25_cloud_base/.vagrant/machines/fedora_25_cloud_base/libvirt/private_key\n  IdentitiesOnly yes\n  LogLevel FATAL",
+# # convert "localhost:80" to "localhost, 80" using named groups
+# {{ 'localhost:80' | regex_replace('^(?P<host>.+):(?P<port>\\d+)$', '\\g<host>, \\g<port>') }}
+#
+# TODO:
+# - name: associate auth info / group info to containers
+#   - name: save inventory file with the deployed containers

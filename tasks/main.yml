@@ -16,6 +16,12 @@
   include: setup_vms.yml
   static: no
   when: vagrant_provisioner_vms | length > 0
+  with_items: >
+    {{ vagrant_provisioner_vms }}
+  loop_control:
+    label: >-
+      {{ vm.hostname }}
+    loop_var: vm
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::vms

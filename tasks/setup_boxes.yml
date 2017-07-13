@@ -4,16 +4,17 @@
 - block:
 
   - name: get vagrant boxes
-    shell: "vagrant box add {{ box.name }} --provider {{ box.provider }}"
+    shell: "vagrant box add {{ box.name }} --provider {{ box.provider }} --machine-readable"
+    # TODO "--machine-readable"
     with_items: "{{ vagrant_provisioner_boxes }}"
     register: result_vagrant_box_add
     failed_when: >
-      result_vagrant_box_add.rc == 1
-      and "The box you're attempting to add already exists."
-        not in result_vagrant_box_add.stderr
+      "The box you're attempting to add already exists."
+        not in result_vagrant_box_add.stdout
+      and result_vagrant_box_add.rc == 1
     changed_when: >
-      result_vagrant_box_add.rc == 0
-      and "Successfully added box" in result_vagrant_box_add.stdout
+      "Successfully added box" in result_vagrant_box_add.stdout
+      and result_vagrant_box_add.rc == 0
     loop_control:
       label: "{{ box.name }}"
       loop_var: box

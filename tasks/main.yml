@@ -25,3 +25,9 @@
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::vms
+
+- name: save inventory file with the deployed containers
+  template:
+    src: inventory.j2
+    dest: "{{ vms_directory }}/inventory"
+    backup: no

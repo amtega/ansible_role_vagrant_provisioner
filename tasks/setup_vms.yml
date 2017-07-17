@@ -29,7 +29,7 @@
     chdir: >-
       {{ vm_path }}
   changed_when: false
-  register: result_vagrantf_status
+  register: result_vagrant_status
 
 - name: "({{ vm.hostname }}) vagrant destroy"
   shell: "vagrant destroy --machine-readable"
@@ -39,7 +39,7 @@
       {{ vm_path }}
   when: >-
     result_vagrantfile.changed
-    and ',state,not_created' not in result_vagrantf_status
+    and ',state,not_created' not in result_vagrant_status.stdout
   failed_when: false
 
   # TODO: stop running machines not listed in vagrant or virsh list
@@ -53,7 +53,7 @@
     chdir: >-
       {{ vm_path }}
   when: >-
-    ',state,not_created' in result_vagrantf_status
+    ',state,not_created' in result_vagrant_status.stdout
   changed_when: >
     result_vagrant_up.rc == 0
     and not "Machine already provisioned." in result_vagrant_up.stdout
@@ -61,7 +61,7 @@
     ',ui,error,' in result_vagrant_up.stdout
     or result_vagrant_up.rc == 1
 
-- name: get vm ip address
+- name: "({{ vm.hostname }}) get vm ip address"
   shell: "vagrant ssh-config"
   register: result_vagrant_ssh_config
   become: true
@@ -82,10 +82,3 @@
     msg: >-
       IdentityFile:{{ result_vagrant_ssh_config.stdout | regex_replace('^(?sm).*\n *IdentityFile *(?P<identityfile>[^\n]+)\n.*$', '\1') }}
 
-# "stdout": "Host fedora_25_cloud_base\n  HostName 192.168.121.72\n  User vagrant\n  Port 22\n  UserKnownHostsFile /dev/null\n  StrictHostKeyChecking no\n  PasswordAuthentication no\n  IdentityFile /home/dsanfab/git/ansible_vagrant_provisioner/test/virtual_machines/fedora_25_cloud_base/.vagrant/machines/fedora_25_cloud_base/libvirt/private_key\n  IdentitiesOnly yes\n  LogLevel FATAL",
-# # convert "localhost:80" to "localhost, 80" using named groups
-# {{ 'localhost:80' | regex_replace('^(?P<host>.+):(?P<port>\\d+)$', '\\g<host>, \\g<port>') }}
-#
-# TODO:
-# - name: associate auth info / group info to containers
-#   - name: save inventory file with the deployed containers

@@ -3,6 +3,8 @@
 
 - name: test vagrant_engine the role
   hosts: localhost
+  strategy: debug
   tasks:
-    - include_role:
+    - name: Include ansible_vagrant_provisioner
+      include_role:
         name: ansible_vagrant_provisioner

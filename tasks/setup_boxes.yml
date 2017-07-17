@@ -9,7 +9,7 @@
     with_items: "{{ vagrant_provisioner_boxes }}"
     register: result_vagrant_box_add
     failed_when: >
-      "The box you're attempting to add already exists."
+      ",ui,error,The box you're attempting to add already exists."
         not in result_vagrant_box_add.stdout
       and result_vagrant_box_add.rc == 1
     changed_when: >

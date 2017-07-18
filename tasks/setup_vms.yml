@@ -3,7 +3,7 @@
 
 - set_fact:
     vm_path: >-
-      {{ vms_directory | expanduser }}/virtual_machines/{{ vm.subdirectory }}
+      {{ vagrant_provisioner_vms_directory | expanduser }}/virtual_machines/{{ vm.subdirectory }}
 
 - name: "({{ vm.hostname }}) create vagrant vm directories"
   file:
@@ -87,16 +87,15 @@
     name: >-
       {{ vm.hostname }}
     groups: >-
-      vm
+      {{ vagrant_provisioner_vms_group }}
     # http://docs.ansible.com/ansible/intro_inventory.html#list-of-behavioral-inventory-parameters
+    # TODO regex o reject(...)
     ansible_host: >-
       {{ result_vagrant_ssh_config.stdout_lines[1][11:] }}
+      {{ result_vagrant_ssh_config.stdout |
+        regex_replace('^(?sm).*\n *HostName *(?P<hostname>[^\n]+)\n.*$',
+                                                  '\1') }}
     ansible_ssh_private_key_file: >-
       {{ result_vagrant_ssh_config.stdout |
         regex_replace('^(?sm).*\n *IdentityFile *(?P<identityfile>[^\n]+)\n.*$',
                                                   '\1') }}
-- name: save inventory file with the deployed containers
-  template:
-    src: inventory.j2
-    dest: "{{ vms_directory | expanduser }}/inventory_test"
-    backup: no

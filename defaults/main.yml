@@ -17,6 +17,7 @@ vagrant_provisioner_boxes:
 
 vagrant_provisioner_vms:
   - name: "centos_7"
+    state: present
     hostname: "centos-7"
     subdirectory: "centos_7"
     box:
@@ -26,6 +27,7 @@ vagrant_provisioner_vms:
     memory: 1024
     cpus: 1
   - name: "fedora_25_cloud_base"
+    state: present
     hostname: "fedora-25-cloud-base"
     subdirectory: "fedora_25_cloud_base"
     box:
@@ -35,8 +37,10 @@ vagrant_provisioner_vms:
     memory: 1024
     cpus: 1
 
-vms_directory: ~/git/ansible_vagrant_provisioner/test
-#
+vagrant_provisioner_vms_directory: ~/git/ansible_vagrant_provisioner/test
+vagrant_provisioner_vms_group: vagrant_vm
+vagrant_provisioner_inventory_filename: inventory_test
+
 # # box options to apply if no other ones are specified in the specific
 # # box dictionary of the vagrant_provisioner_boxes variable. See
 # # vagrant_box module documentation for detais of each option.

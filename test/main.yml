@@ -4,7 +4,59 @@
 - name: test vagrant_engine the role
   hosts: localhost
   strategy: debug
-  tasks:
-    - name: Include ansible_vagrant_provisioner
-      include_role:
-        name: ansible_vagrant_provisioner
+
+  roles:
+  - role: ansible_vagrant_provisioner
+    vagrant_provisioner_boxes:
+    - name: "centos/7"
+      state: present
+      provider: "libvirt"
+    - name: "fedora/25-cloud-base"
+      state: present
+      provider: "libvirt"
+    - name: "fedora/26-cloud-base"
+      state: present
+      provider: "libvirt"
+    vagrant_provisioner_vms:
+    - name: "centos_7"
+      state: present
+      hostname: "centos-7"
+      subdirectory: "centos_7"
+      box:
+        name: "centos/7"
+        provider: "libvirt"
+      driver: kvm
+      memory: 1024
+      cpus: 1
+    - name: "fedora_26_cloud_base"
+      state: present
+      hostname: "fedora-26-cloud-base"
+      subdirectory: "fedora_26_cloud_base"
+      box:
+        name: "fedora/26-cloud-base"
+        provider: "libvirt"
+      driver: kvm
+      memory: 1024
+      cpus: 1
+
+  # Cleanup provisioned vms
+
+  # - role: ansible_vagrant_provisioner
+  #   vagrant_provisioner_vms:
+  #   - name: "centos_7"
+  #     state: absent
+  #   - name: "fedora_26_cloud_base"
+  #     state: absent
+
+  # Cleanup provisioned boxes
+  # - role: ansible_vagrant_provisioner
+  #   vagrant_provisioner_boxes:
+  #   - name: "centos/7"
+  #     state: absent
+  #     provider: "libvirt"
+  #   - name: "fedora/25-cloud-base"
+  #     state: absent
+  #     provider: "libvirt"
+  #   - name: "fedora/26-cloud-base"
+  #     state: absent
+  #     provider: "libvirt"

@@ -2,85 +2,38 @@
 # Role default lower priority variables
 
 # List of dicts with the boxes to provision. The dicts must have the following
-# values
-#   TODO
+# format:
+vagrant_provisioner_boxes: []
+# # List of boxes
+#   # Name of the box in VagrantCloud https://app.vagrantup.com
+# - name: "centos/7"
+#   # Provider: libvirt # Note tested with: docker, virtualbox, vmware_fusion, ...
+#   provider: "libvirt"
 
-vagrant_provisioner_boxes:
-  - name: "centos/7"
-    provider: "libvirt"
-  - name: "fedora/25-cloud-base"
-    provider: "libvirt"
 
-# List of dicts with the vms to provision. The dicts must have the
-# following values
-# TODO
-
-vagrant_provisioner_vms:
-  - name: "centos_7"
-    state: present
-    hostname: "centos-7"
-    subdirectory: "centos_7"
-    box:
-      name: "centos/7"
-      provider: "libvirt"
-    driver: kvm
-    memory: 1024
-    cpus: 1
-  - name: "fedora_25_cloud_base"
-    state: present
-    hostname: "fedora-25-cloud-base"
-    subdirectory: "fedora_25_cloud_base"
-    box:
-      name: "fedora/25-cloud-base"
-      provider: "libvirt"
-    driver: kvm
-    memory: 1024
-    cpus: 1
+# List of dicts with the virtual machines (vms) to provision. The dicts must have the
+# following format:
+vagrant_provisioner_vms: []
+# # List of vms
+#   # Vm display name
+# - name: "centos_7"
+#   # state: present or absent (to add remove the vm)
+#   state: present
+#   # DNS name of the vm
+#   hostname: "centos-7"
+#   # subdirectory inside of {{ vagrant_provisioner_vms_directory }}
+#   subdirectory: "centos_7"
+#   # What box is the vm derived from
+#   box:
+#     name: "centos/7"
+#     provider: "libvirt"
+#   # Virtual machine configuration parameters
+#   driver: kvm
+#   memory: 1024
+#   cpus: 1
+# - name: "fedor
+#   # xxx
 
 vagrant_provisioner_vms_directory: ~/git/ansible_vagrant_provisioner/test
 vagrant_provisioner_vms_group: vagrant_vm
 vagrant_provisioner_inventory_filename: inventory_test
-
-# # box options to apply if no other ones are specified in the specific
-# # box dictionary of the vagrant_provisioner_boxes variable. See
-# # vagrant_box module documentation for detais of each option.
-#
-# vagrant_provisioner_box_name: ""
-# vagrant_provisioner_box_vagrantfile: vagrantfile
-# vagrant_provisioner_box_buildargs: {}
-# vagrant_provisioner_box_force: false
-# vagrant_provisioner_box_path: .
-# vagrant_provisioner_box_rm: true
-#
-# # General container options to apply if no other ones are specified in the
-# # specific container dictionary of the vagrant_provisioner_containers
-# # variable
-#
-# vagrant_provisioner_container_name: ""
-# vagrant_provisioner_container_box: ""
-# vagrant_provisioner_container_privileged: true
-# vagrant_provisioner_container_tls: true
-# vagrant_provisioner_container_stop_timeout: 1
-# vagrant_provisioner_container_tty: true
-# vagrant_provisioner_container_expose: ['1-65535']
-# vagrant_provisioner_container_command: ""
-# vagrant_provisioner_container_env: {}
-# vagrant_provisioner_container_links: []
-# vagrant_provisioner_container_recreate: false
-# vagrant_provisioner_container_restart: false
-# vagrant_provisioner_container_volumes: []
-#
-#
-# # Theses variables set the ansible user, password to connect the
-# # containers. Also, variable vagrant_provisioner_container_groups contains a
-# # list of ansible groups where to add the provisioned containers.
-#
-# vagrant_provisioner_container_ansible_user: root
-# vagrant_provisioner_container_ansible_password: root
-# vagrant_provisioner_container_groups: ['vagrant_provisioner_containers']
-#
-# # If defined, this variable tells to role to create a minimal inventory file
-# # containing the deployed containers. Be warned that auth info is contained in
-# # clear text in this file
-#
-# #vagrant_provisioner_inventory:

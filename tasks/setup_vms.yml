@@ -53,10 +53,11 @@
     chdir: >-
       {{ vm_path }}
   when: >-
-    ',state,not_created' in result_vagrant_status.stdout
+    ',state,running' not in result_vagrant_status.stdout
   changed_when: >
     result_vagrant_up.rc == 0
-    and not "Machine already provisioned." in result_vagrant_up.stdout
+    and ',action,up,start' in result_vagrant_up.stdout
+    and ',action,up,end' in result_vagrant_up.stdout
   failed_when: >-
     ',ui,error,' in result_vagrant_up.stdout
     or result_vagrant_up.rc == 1
@@ -99,3 +100,4 @@
       {{ result_vagrant_ssh_config.stdout |
         regex_replace('^(?sm).*\n *IdentityFile *(?P<identityfile>[^\n]+)\n.*$',
                                                   '\1') }}
+  changed_when: false

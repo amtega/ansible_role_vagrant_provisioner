@@ -7,7 +7,7 @@ vagrant_provisioner_boxes: []
 # # List of boxes
 #   # Name of the box in VagrantCloud https://app.vagrantup.com
 # - name: "centos/7"
-#   # Provider: libvirt # Note tested with: docker, virtualbox, vmware_fusion, ...
+#   # Provider: libvirt # Note tested with: docker, virtualbox, vmware, ...
 #   provider: "libvirt"
 
 
@@ -31,8 +31,7 @@ vagrant_provisioner_vms: []
 #   driver: kvm
 #   memory: 1024
 #   cpus: 1
-# - name: "fedor
-#   # xxx
+
 
 vagrant_provisioner_vms_directory: ~/git/ansible_vagrant_provisioner/test
 vagrant_provisioner_vms_group: vagrant_vm

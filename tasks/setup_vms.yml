@@ -5,87 +5,92 @@
     vm_path: >-
       {{ vagrant_provisioner_vms_directory | expanduser }}/virtual_machines/{{ vm.subdirectory }}
 
-- name: "({{ vm.hostname }}) create vagrant vm directories"
-  file:
-    path: >-
-      {{ vm_path }}
-    state: directory
-    force: yes
-    recurse: yes
+- block:
+  - name: "({{ vm.hostname }}) create vagrant vm directories"
+    file:
+      path: >-
+        {{ vm_path }}
+      state: directory
+      force: yes
+      recurse: yes
 
-- name: "({{ vm.hostname }}) create vagrant file"
-  template:
-    src: Vagrantfile.j2
-    dest: >-
-      {{ vm_path }}/Vagrantfile
-    force: yes
-    backup: yes
-  register: result_vagrantfile
+  - name: "({{ vm.hostname }}) create vagrant file"
+    template:
+      src: Vagrantfile.j2
+      dest: >-
+        {{ vm_path }}/Vagrantfile
+      force: yes
+      backup: yes
+    register: result_vagrantfile
 
-- name: "({{ vm.hostname }}) vagrant status"
-  shell: "vagrant status --machine-readable"
-  become: true
-  args:
-    chdir: >-
-      {{ vm_path }}
-  changed_when: false
-  register: result_vagrant_status
+  - name: "({{ vm.hostname }}) vagrant status"
+    shell: "vagrant status --machine-readable"
+    become: true
+    args:
+      chdir: >-
+        {{ vm_path }}
+    changed_when: false
+    register: result_vagrant_status
 
-- name: "({{ vm.hostname }}) vagrant destroy"
-  shell: "vagrant destroy --machine-readable"
-  become: true
-  args:
-    chdir: >-
-      {{ vm_path }}
-  when: >-
-    result_vagrantfile.changed
-    and ',state,not_created' not in result_vagrant_status.stdout
-  failed_when: false
+  - name: "({{ vm.hostname }}) vagrant destroy"
+    shell: "vagrant destroy --machine-readable"
+    become: true
+    args:
+      chdir: >-
+        {{ vm_path }}
+    when: >-
+      result_vagrantfile.changed
+      and ',state,not_created' not in result_vagrant_status.stdout
+    changed_when: >-
+      'Domain is not created. Please run `vagrant up` first.' not in result_vagrant_destroy.stdout
+    failed_when: false
 
-  # TODO: stop running machines not listed in vagrant or virsh list
-  # and erase its /var/lib/libvirt/images/* images (!?!)
+    # TODO: stop running machines not listed in vagrant or virsh list
+    # and erase its /var/lib/libvirt/images/* images (!?!)
 
-- name: "({{ vm.hostname }}) vagrant up"
-  shell: "vagrant up --machine-readable"
-  register: result_vagrant_up
-  become: true
-  args:
-    chdir: >-
-      {{ vm_path }}
-  when: >-
-    ',state,running' not in result_vagrant_status.stdout
-  changed_when: >
-    result_vagrant_up.rc == 0
-    and ',action,up,start' in result_vagrant_up.stdout
-    and ',action,up,end' in result_vagrant_up.stdout
-  failed_when: >-
-    ',ui,error,' in result_vagrant_up.stdout
-    or result_vagrant_up.rc == 1
+  - name: "({{ vm.hostname }}) vagrant up"
+    shell: "vagrant up --machine-readable"
+    register: result_vagrant_up
+    become: true
+    args:
+      chdir: >-
+        {{ vm_path }}
+    when: >-
+      ',state,running' not in result_vagrant_status.stdout
+    changed_when: >
+      result_vagrant_up.rc == 0
+      and ',action,up,start' in result_vagrant_up.stdout
+      and ',action,up,end' in result_vagrant_up.stdout
+    failed_when: >-
+      ',ui,error,' in result_vagrant_up.stdout
+      or result_vagrant_up.rc == 1
 
-- name: "({{ vm.hostname }}) get vm ip address"
-  shell: "vagrant ssh-config"
-  register: result_vagrant_ssh_config
-  become: true
-  args:
-    chdir: >-
-      {{ vm_path }}
-  changed_when: false
+  - name: "({{ vm.hostname }}) get vm ip address"
+    shell: "vagrant ssh-config"
+    register: result_vagrant_ssh_config
+    become: true
+    args:
+      chdir: >-
+        {{ vm_path }}
+    changed_when: false
 
-- name: "({{ vm.hostname }}) associate auth info / group info to vms"
-  add_host:
-    name: >-
-      {{ vm.hostname }}
-    groups: >-
-      {{ vagrant_provisioner_vms_group }}
-    # http://docs.ansible.com/ansible/intro_inventory.html#list-of-behavioral-inventory-parameters
-    # TODO regex o reject(...)
-    ansible_host: >-
-      {{ result_vagrant_ssh_config.stdout_lines[1][11:] }}
-      {{ result_vagrant_ssh_config.stdout |
-        regex_replace('^(?sm).*\n *HostName *(?P<hostname>[^\n]+)\n.*$',
-                                                  '\1') }}
-    ansible_ssh_private_key_file: >-
-      {{ result_vagrant_ssh_config.stdout |
-        regex_replace('^(?sm).*\n *IdentityFile *(?P<identityfile>[^\n]+)\n.*$',
-                                                  '\1') }}
-  changed_when: false
+  - name: "({{ vm.hostname }}) associate auth info / group info to vms"
+    add_host:
+      name: >-
+        {{ vm.hostname }}
+      groups: >-
+        {{ vagrant_provisioner_vms_group }}
+      # http://docs.ansible.com/ansible/intro_inventory.html#list-of-behavioral-inventory-parameters
+      # TODO regex o reject(...)
+      ansible_host: >-
+        {{ result_vagrant_ssh_config.stdout_lines[1][11:] }}
+        {{ result_vagrant_ssh_config.stdout |
+          regex_replace('^(?sm).*\n *HostName *(?P<hostname>[^\n]+)\n.*$',
+                                                    '\1') }}
+      ansible_ssh_private_key_file: >-
+        {{ result_vagrant_ssh_config.stdout |
+          regex_replace('^(?sm).*\n *IdentityFile *(?P<identityfile>[^\n]+)\n.*$',
+                                                    '\1') }}
+    changed_when: false
+  when: vm.state == 'present'
+

@@ -40,23 +40,23 @@
       cpus: 1
 
   # Cleanup provisioned vms
-
-  # - role: ansible_vagrant_provisioner
-  #   vagrant_provisioner_vms:
-  #   - name: "centos_7"
-  #     state: absent
-  #   - name: "fedora_26_cloud_base"
-  #     state: absent
+  - role: ansible_vagrant_provisioner
+    vagrant_provisioner_vms:
+    - name: "centos_7"
+      state: absent
+      hostname: "centos-7"
+      subdirectory: "centos_7"
+    - name: "fedora_26_cloud_base"
+      state: absent
+      hostname: "fedora-26-cloud-base"
+      subdirectory: "fedora_26_cloud_base"
 
   # Cleanup provisioned boxes
-  # - role: ansible_vagrant_provisioner
-  #   vagrant_provisioner_boxes:
-  #   - name: "centos/7"
-  #     state: absent
-  #     provider: "libvirt"
-  #   - name: "fedora/25-cloud-base"
-  #     state: absent
-  #     provider: "libvirt"
-  #   - name: "fedora/26-cloud-base"
-  #     state: absent
-  #     provider: "libvirt"
+  - role: ansible_vagrant_provisioner
+    vagrant_provisioner_boxes:
+    - name: "centos/7"
+      state: absent
+      provider: "libvirt"
+    - name: "fedora/26-cloud-base"
+      state: absent
+      provider: "libvirt"

@@ -71,18 +71,6 @@
       {{ vm_path }}
   changed_when: false
 
-- debug:
-    var: result_vagrant_ssh_config
-- debug:
-    msg: >-
-      IP:{{ result_vagrant_ssh_config.stdout_lines[1][11:] }}
-- debug:
-    # https://docs.python.org/2/library/re.html#regular-expression-syntax
-    # (?s) "dot matches all"
-    # (?m) "multi line"
-    msg: >-
-      IdentityFile:{{ result_vagrant_ssh_config.stdout | regex_replace('^(?sm).*\n *IdentityFile *(?P<identityfile>[^\n]+)\n.*$', '\1') }}
-
 - name: "({{ vm.hostname }}) associate auth info / group info to vms"
   add_host:
     name: >-

@@ -82,6 +82,7 @@
         {{ vagrant_provisioner_vms_group }}
       # http://docs.ansible.com/ansible/intro_inventory.html#list-of-behavioral-inventory-parameters
       # TODO regex o reject(...)
+      state: present
       ansible_host: >-
         {{ result_vagrant_ssh_config.stdout_lines[1][11:] }}
         {{ result_vagrant_ssh_config.stdout |
@@ -119,5 +120,14 @@
       state: absent
       force: yes
     become: true
+
+  - name: "({{ vm.hostname }}) mark as absent in inventory"
+    add_host:
+      name: >-
+        {{ vm.hostname }}
+      groups: >-
+        {{ vagrant_provisioner_vms_group }}
+      state: absent
+    changed_when: false
 
   when: vm.state == 'absent'

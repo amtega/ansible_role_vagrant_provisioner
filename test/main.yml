@@ -6,7 +6,9 @@
   strategy: debug
 
   roles:
-  - role: ansible_vagrant_provisioner
+  # Provision virtual machines
+  - &yaml_alias__provision
+    role: ansible_vagrant_provisioner
     vagrant_provisioner_banner_message: Provision virtual machines
     vagrant_provisioner_boxes:
     - name: "centos/7"
@@ -37,8 +39,13 @@
       memory: 1024
       cpus: 1
 
+  # Idempotence test - Provision virtual machines
+  - <<: *yaml_alias__provision
+    vagrant_provisioner_banner_message: (Idempotence test) Provision virtual machines
+
   # Cleanup provisioned vms
-  - role: ansible_vagrant_provisioner
+  - &yaml_alias__cleanup_vms
+    role: ansible_vagrant_provisioner
     vagrant_provisioner_banner_message: Cleanup provisioned virtual machines
     vagrant_provisioner_vms:
     - name: "centos_7"
@@ -49,12 +56,17 @@
       state: absent
       hostname: "fedora-26-cloud-base"
       subdirectory: "fedora_26_cloud_base"
-  # TODO: Idempotence
+
+  # Idempotence test - Cleanup provisioned vms
+  - <<: *yaml_alias__cleanup_vms
+    vagrant_provisioner_banner_message: (Idempotence test) Cleanup provisioned virtual machines
+
   # TODO: ping the vms
   # TODO: ssh into the vms
 
   # Cleanup provisioned boxes
-  - role: ansible_vagrant_provisioner
+  - &yaml_alias__cleanup_boxes
+    role: ansible_vagrant_provisioner
     vagrant_provisioner_banner_message: Cleanup provisioned boxes
     vagrant_provisioner_boxes:
     - name: "centos/7"
@@ -63,3 +75,7 @@
     - name: "fedora/26-cloud-base"
       state: absent
       provider: "libvirt"
+
+  # Idempotence test - Cleanup provisioned vms
+  - <<: *yaml_alias__cleanup_boxes
+    vagrant_provisioner_banner_message: (Idempotence test) Cleanup provisioned boxes

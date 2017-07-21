@@ -11,9 +11,6 @@
     - name: "centos/7"
       state: present
       provider: "libvirt"
-    - name: "fedora/25-cloud-base"
-      state: present
-      provider: "libvirt"
     - name: "fedora/26-cloud-base"
       state: present
       provider: "libvirt"
@@ -50,6 +47,9 @@
       state: absent
       hostname: "fedora-26-cloud-base"
       subdirectory: "fedora_26_cloud_base"
+  # TODO: Idempotence
+  # TODO: ping the vms
+  # TODO: ssh into the vms
 
   # Cleanup provisioned boxes
   - role: ansible_vagrant_provisioner

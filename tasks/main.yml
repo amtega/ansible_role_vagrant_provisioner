@@ -2,7 +2,8 @@
 # Role tasks
 
 - debug:
-    msg: '{{ "░" * 400 }} Begin vagrant_provisioner {{ "░" * 400 }}'
+    msg: '{{ "░" * 400 }} {{ vagrant_provisioner_banner_message }} {{ "░" * 400 }}'
+  when: vagrant_provisioner_banner_message is defined
 
 - name: setup boxes
   include: setup_boxes.yml

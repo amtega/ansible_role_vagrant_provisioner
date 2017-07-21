@@ -7,6 +7,7 @@
 
   roles:
   - role: ansible_vagrant_provisioner
+    vagrant_provisioner_banner_message: Provision virtual machines
     vagrant_provisioner_boxes:
     - name: "centos/7"
       state: present
@@ -38,6 +39,7 @@
 
   # Cleanup provisioned vms
   - role: ansible_vagrant_provisioner
+    vagrant_provisioner_banner_message: Cleanup provisioned virtual machines
     vagrant_provisioner_vms:
     - name: "centos_7"
       state: absent
@@ -53,6 +55,7 @@
 
   # Cleanup provisioned boxes
   - role: ansible_vagrant_provisioner
+    vagrant_provisioner_banner_message: Cleanup provisioned boxes
     vagrant_provisioner_boxes:
     - name: "centos/7"
       state: absent

@@ -2,5 +2,6 @@
 
 [{{ vagrant_provisioner_vms_group }}]
 {% for machine_name in groups[vagrant_provisioner_vms_group] %}
-{{ hostvars[machine_name]['inventory_hostname'] }} ansible_host={{ hostvars[machine_name]['ansible_host'] }} ansible_ssh_private_key_file={{ hostvars[machine_name]['ansible_ssh_private_key_file'] }}
+{% set vars = hostvars[machine_name] %}
+{{ vars['inventory_hostname'] }} ansible_host={{ vars['ansible_host'].split(' ')[0] }} ansible_ssh_private_key_file={{ vars['ansible_ssh_private_key_file'] }}
 {% endfor %}

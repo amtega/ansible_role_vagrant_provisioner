@@ -47,8 +47,6 @@
   become_user: vagrant
   tasks:
     - ping:
-    - ping: null
-    - ping: ~
 
   # Cleanup provisioned vms
   - &yaml_alias__cleanup_vms

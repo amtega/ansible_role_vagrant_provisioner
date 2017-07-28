@@ -84,6 +84,7 @@
       # http://docs.ansible.com/ansible/intro_inventory.html#list-of-behavioral-inventory-parameters
       # TODO regex o reject(...)
       state: present
+      ansible_user: vagrant
       ansible_host: >-
         {{ result_vagrant_ssh_config.stdout_lines[1][11:] }}
         {{ result_vagrant_ssh_config.stdout |
@@ -93,6 +94,10 @@
         {{ result_vagrant_ssh_config.stdout |
           regex_replace('^(?sm).*\n *IdentityFile *(?P<identityfile>[^\n]+)\n.*$',
                                                     '\1') }}
+      # HACK: Without this it ignores ansible.cfg host_key_checking var
+      ansible_ssh_extra_args: >-
+        -o StrictHostKeyChecking=no
+      # TODO: When to use: ansible_python_interpreter=/usr/bin/python3
     changed_when: false
   when: vm.state == 'present'
 

@@ -25,19 +25,20 @@
 
   - name: "({{ vm.hostname }}) vagrant status"
     shell: "vagrant status --machine-readable"
-    become: true
+    # become: true
     args:
       chdir: >-
         {{ vm_path }}
-    changed_when: false
     register: result_vagrant_status
+    changed_when: false
 
   - name: "({{ vm.hostname }}) vagrant destroy"
     shell: "vagrant destroy --machine-readable"
-    become: true
+    # become: true
     args:
       chdir: >-
         {{ vm_path }}
+    register: result_vagrant_destroy
     when: >-
       result_vagrantfile.changed
       and ',state,not_created' not in result_vagrant_status.stdout
@@ -51,7 +52,7 @@
   - name: "({{ vm.hostname }}) vagrant up"
     shell: "vagrant up --machine-readable"
     register: result_vagrant_up
-    become: true
+    # become: true
     args:
       chdir: >-
         {{ vm_path }}
@@ -68,7 +69,7 @@
   - name: "({{ vm.hostname }}) get vm ip address"
     shell: "vagrant ssh-config"
     register: result_vagrant_ssh_config
-    become: true
+    # become: true
     args:
       chdir: >-
         {{ vm_path }}
@@ -103,7 +104,7 @@
 
   - name: "({{ vm.hostname }}) vagrant destroy"
     shell: "vagrant destroy --machine-readable"
-    become: true
+    # become: true
     args:
       removes: "{{ vm_path }}"
       chdir:   "{{ vm_path }}"
@@ -119,7 +120,7 @@
       path: "{{ vm_path }}"
       state: absent
       force: yes
-    become: true
+    # become: true
 
   - name: "({{ vm.hostname }}) mark as absent in inventory"
     add_host:

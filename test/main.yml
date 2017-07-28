@@ -1,9 +1,8 @@
 ---
 # Tasks for tesing role
 
-- name: test vagrant_engine the role
+- name: test the role vagrant_engine
   hosts: localhost
-  strategy: debug
 
   roles:
   # Provision virtual machines
@@ -42,6 +41,14 @@
   # Idempotence test - Provision virtual machines
   - <<: *yaml_alias__provision
     vagrant_provisioner_banner_message: (Idempotence test) Provision virtual machines
+
+- name: Ping new hosts
+  hosts: vagrant_vm
+  become_user: vagrant
+  tasks:
+    - ping:
+    - ping: null
+    - ping: ~
 
   # Cleanup provisioned vms
   - &yaml_alias__cleanup_vms

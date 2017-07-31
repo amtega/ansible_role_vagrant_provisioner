@@ -30,6 +30,7 @@
     - name: "fedora_26_cloud_base"
       state: present
       hostname: "fedora-26-cloud-base"
+      ansible_python_interpreter: /usr/bin/python3
       subdirectory: "fedora_26_cloud_base"
       box:
         name: "fedora/26-cloud-base"

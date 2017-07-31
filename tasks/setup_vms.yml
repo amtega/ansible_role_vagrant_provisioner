@@ -97,7 +97,8 @@
       # HACK: Without this it ignores ansible.cfg host_key_checking var
       ansible_ssh_extra_args: >-
         -o StrictHostKeyChecking=no
-      # TODO: When to use: ansible_python_interpreter=/usr/bin/python3
+      ansible_python_interpreter: >-
+        {{ vm.ansible_python_interpreter | default(vagrant_provisioner_default_ansible_python_interpreter) }}
     changed_when: false
   when: vm.state == 'present'
 

@@ -3,5 +3,14 @@
 [{{ vagrant_provisioner_vms_group }}]
 {% for machine_name in groups[vagrant_provisioner_vms_group] %}
 {% set vars = hostvars[machine_name] %}
-{{ vars['inventory_hostname'] }} ansible_host={{ vars['ansible_host'].split(' ')[0] }} ansible_user={{ vars['ansible_user'] }} ansible_ssh_extra_args={{ vars['ansible_ssh_extra_args'] }} ansible_ssh_private_key_file={{ vars['ansible_ssh_private_key_file'] }}
+{{ vars['inventory_hostname'].__str__() | comment }}
+{{ vars['inventory_hostname']
+  }} ansible_host={{ vars['ansible_host'].split(' ')[0]
+  }} ansible_user={{ vars['ansible_user']
+  }} ansible_ssh_extra_args={{ vars['ansible_ssh_extra_args']
+  }} ansible_ssh_private_key_file={{ vars['ansible_ssh_private_key_file']
+  }} {% if vars['ansible_python_interpreter'] != vagrant_provisioner_default_ansible_python_interpreter
+    %}ansible_python_interpreter={{vars['ansible_python_interpreter']}}{%
+    endif %}
+
 {% endfor %}

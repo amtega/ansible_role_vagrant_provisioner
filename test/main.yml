@@ -1,7 +1,7 @@
 ---
 # Tasks for tesing role
 
-- name: test the role vagrant_engine
+- name: test the role vagrant_engine provision
   hosts: localhost
 
   roles:
@@ -49,6 +49,10 @@
   tasks:
     - ping:
 
+- name: test the role vagrant_engine cleanup
+  hosts: localhost
+
+  roles:
   # Cleanup provisioned vms
   - &yaml_alias__cleanup_vms
     role: ansible_vagrant_provisioner
@@ -66,9 +70,6 @@
   # Idempotence test - Cleanup provisioned vms
   - <<: *yaml_alias__cleanup_vms
     vagrant_provisioner_banner_message: (Idempotence test) Cleanup provisioned virtual machines
-
-  # TODO: ping the vms
-  # TODO: ssh into the vms
 
   # Cleanup provisioned boxes
   - &yaml_alias__cleanup_boxes

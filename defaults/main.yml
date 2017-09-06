@@ -7,7 +7,7 @@ vagrant_provisioner_boxes: []
 # # List of boxes
 #   # Name of the box in VagrantCloud https://app.vagrantup.com
 # - name: "centos/7"
-#   # Provider: libvirt # Note tested with: docker, virtualbox, vmware, ...
+#   # Provider: libvirt # Only tested with libvirt and docker
 #   provider: "libvirt"
 
 

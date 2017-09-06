@@ -33,7 +33,7 @@ vagrant_provisioner_vms: []
 #   cpus: 1
 
 
-vagrant_provisioner_vms_directory: ~/git/ansible_vagrant_provisioner/test
+vagrant_provisioner_vms_directory: ./
 vagrant_provisioner_vms_group: vagrant_vm
 vagrant_provisioner_inventory_filename: inventory_test
 vagrant_provisioner_default_ansible_python_interpreter: /usr/bin/python2

@@ -20,7 +20,7 @@ Here is a list of all the default variables for this role, which are also availa
 
   # Directory inwich will reside vagrantfiles, following the pattern:
   #   virtual_machines/<vm.name>/Vagrantfile
-  vagrant_provisioner_vms_directory: ~/git/ansible_vagrant_provisioner/test
+  vagrant_provisioner_vms_directory: ./
   # Created vms inventory file filename
   vagrant_provisioner_inventory_filename: inventory_test
   # Created vms inventory group name
@@ -101,7 +101,7 @@ This is an example playbook:
 ## Testing
 
 ```shell
-$ cd ansible_vagrant_provisioner/test
+$ cd ansible_vagrant_provisioner/tests
 $ ansible-playbook main.yml
 ```
 

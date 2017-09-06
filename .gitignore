@@ -1,6 +1,6 @@
-# test results
-test/inventory_test
-test/virtual_machines/**
+# tests results
+tests/inventory_test
+tests/virtual_machines/**
 
 # ------------------------------------------------------------------------------
 # Created by https://www.gitignore.io/api/ansible

@@ -128,13 +128,4 @@
       force: yes
     # become: true
 
-  - name: "({{ vm.hostname }}) mark as absent in inventory"
-    add_host:
-      name: >-
-        {{ vm.hostname }}
-      groups: >-
-        {{ vagrant_provisioner_vms_group }}
-      state: absent
-    changed_when: false
-
   when: vm.state == 'absent'

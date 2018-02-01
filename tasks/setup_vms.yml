@@ -32,7 +32,7 @@
     register: result_vagrant_status
     changed_when: false
 
-  - name: "({{ vm.hostname }}) vagrant destroy"
+  - name: "({{ vm.hostname }}) vagrant destroy previous vm instance"
     shell: "vagrant destroy --machine-readable"
     # become: true
     args:
@@ -112,7 +112,7 @@
     shell: "vagrant destroy --machine-readable"
     # become: true
     args:
-      removes: "{{ vm_path }}"
+      removes: "Vagrantfile"
       chdir:   "{{ vm_path }}"
     register: result_vagrant_destroy
     when: vm_path_stat.stat.isdir is defined and vm_path_stat.stat.isdir

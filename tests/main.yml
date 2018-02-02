@@ -4,36 +4,37 @@
 - name: test the role vagrant_engine provision
   hosts: localhost
 
+
   roles:
   # Provision virtual machines
   - &yaml_alias__provision
-    role: ansible_vagrant_provisioner
+    role: amtega.vagrant_provisioner
     vagrant_provisioner_banner_message: Provision virtual machines
     vagrant_provisioner_boxes:
-    - name: "centos/7"
-      state: present
-      provider: "libvirt"
-    - name: "fedora/26-cloud-base"
+    # - name: "centos/7"
+    #   state: present
+    #   provider: "libvirt"
+    - name: "fedora/27-cloud-base"
       state: present
       provider: "libvirt"
     vagrant_provisioner_vms:
-    - name: "centos_7"
+    # - name: "centos_7"
+    #   state: present
+    #   hostname: "centos-7"
+    #   subdirectory: "centos_7"
+    #   box:
+    #     name: "centos/7"
+    #     provider: "libvirt"
+    #   driver: kvm
+    #   memory: 1024
+    #   cpus: 1
+    - name: "fedora_27_cloud_base"
       state: present
-      hostname: "centos-7"
-      subdirectory: "centos_7"
-      box:
-        name: "centos/7"
-        provider: "libvirt"
-      driver: kvm
-      memory: 1024
-      cpus: 1
-    - name: "fedora_26_cloud_base"
-      state: present
-      hostname: "fedora-26-cloud-base"
+      hostname: "fedora-27-cloud-base"
       ansible_python_interpreter: /usr/bin/python3
-      subdirectory: "fedora_26_cloud_base"
+      subdirectory: "fedora_27_cloud_base"
       box:
-        name: "fedora/26-cloud-base"
+        name: "fedora/27-cloud-base"
         provider: "libvirt"
       driver: kvm
       memory: 1024
@@ -43,11 +44,12 @@
   - <<: *yaml_alias__provision
     vagrant_provisioner_banner_message: (Idempotence test) Provision virtual machines
 
-- name: Ping new hosts
-  hosts: vagrant_vm
-  become_user: vagrant
-  tasks:
-    - ping:
+# - name: Ping new hosts
+#   gather_facts: false
+#   hosts: vagrant_vm
+#   become_user: vagrant
+#   tasks:
+#     - ping:
 
 - name: test the role vagrant_engine cleanup
   hosts: localhost
@@ -55,31 +57,34 @@
   roles:
   # Cleanup provisioned vms
   - &yaml_alias__cleanup_vms
-    role: ansible_vagrant_provisioner
+    role: amtega.vagrant_provisioner
     vagrant_provisioner_banner_message: Cleanup provisioned virtual machines
     vagrant_provisioner_vms:
-    - name: "centos_7"
+    # - name: "centos_7"
+    #   state: absent
+    #   hostname: "centos-7"
+    #   subdirectory: "centos_7"
+    - name: "fedora_27_cloud_base"
       state: absent
-      hostname: "centos-7"
-      subdirectory: "centos_7"
-    - name: "fedora_26_cloud_base"
-      state: absent
-      hostname: "fedora-26-cloud-base"
-      subdirectory: "fedora_26_cloud_base"
+      hostname: "fedora-27-cloud-base"
+      subdirectory: "fedora_27_cloud_base"
 
   # Idempotence test - Cleanup provisioned vms
   - <<: *yaml_alias__cleanup_vms
     vagrant_provisioner_banner_message: (Idempotence test) Cleanup provisioned virtual machines
 
   # Cleanup provisioned boxes
+  # TODO: https://access.redhat.com/documentation/en-us/red_hat_container_development_kit/2.2/html/installation_guide/uninstalling_or_reinstalling_container_development_kit#deleting_emphasis_role_strong_libvirt_emphasis_storage_images
+  # ls -la /var/lib/libvirt/images/*
+  # for F in /var/lib/libvirt/images/*; do sudo virsh vol-delete "$F" --pool default; done
   - &yaml_alias__cleanup_boxes
-    role: ansible_vagrant_provisioner
+    role: vagrant_provisioner
     vagrant_provisioner_banner_message: Cleanup provisioned boxes
     vagrant_provisioner_boxes:
-    - name: "centos/7"
-      state: absent
-      provider: "libvirt"
-    - name: "fedora/26-cloud-base"
+    # - name: "centos/7"
+    #   state: absent
+    #   provider: "libvirt"
+    - name: "fedora/27-cloud-base"
       state: absent
       provider: "libvirt"
 

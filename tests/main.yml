@@ -44,12 +44,19 @@
   - <<: *yaml_alias__provision
     vagrant_provisioner_banner_message: (Idempotence test) Provision virtual machines
 
-# - name: Ping new hosts
-#   gather_facts: false
-#   hosts: vagrant_vm
-#   become_user: vagrant
-#   tasks:
-#     - ping:
+- name: Ping new hosts
+  gather_facts: false
+  hosts: vagrant_vm
+  become_user: vagrant
+  tasks:
+    - name: "Ping the vm ==============================================================================="
+      ping:
+    - name: "Shell into the vm"
+      shell: "cat /etc/*release*"
+      register: shell_into_vm_result
+    - debug:
+        var: shell_into_vm_result
+
 
 - name: test the role vagrant_engine cleanup
   hosts: localhost

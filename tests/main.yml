@@ -78,7 +78,7 @@
   # ls -la /var/lib/libvirt/images/*
   # for F in /var/lib/libvirt/images/*; do sudo virsh vol-delete "$F" --pool default; done
   - &yaml_alias__cleanup_boxes
-    role: vagrant_provisioner
+    role: amtega.vagrant_provisioner
     vagrant_provisioner_banner_message: Cleanup provisioned boxes
     vagrant_provisioner_boxes:
     # - name: "centos/7"

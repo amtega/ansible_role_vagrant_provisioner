@@ -6,16 +6,14 @@
   when: vagrant_provisioner_banner_message is defined
 
 - name: setup boxes
-  include: setup_boxes.yml
-  static: no
+  include_tasks: setup_boxes.yml
   when: vagrant_provisioner_boxes | length > 0
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::boxes
 
 - name: setup virtual machines
-  include: setup_vms.yml
-  static: no
+  include_tasks: setup_vms.yml
   when: vagrant_provisioner_vms | length > 0
   with_items: >
     {{ vagrant_provisioner_vms }}

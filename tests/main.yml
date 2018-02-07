@@ -55,7 +55,7 @@
       shell: "cat /etc/*release*"
       register: shell_into_vm_result
     - debug:
-        var: shell_into_vm_result
+        var: shell_into_vm_result.stdout_lines
 
 
 - name: test the role vagrant_engine cleanup

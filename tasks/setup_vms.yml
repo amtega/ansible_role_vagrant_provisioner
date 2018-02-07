@@ -25,7 +25,6 @@
 
   - name: "({{ vm.hostname }}) vagrant status"
     shell: "vagrant status --machine-readable"
-    # become: true
     args:
       chdir: >-
         {{ vm_path }}
@@ -34,7 +33,6 @@
 
   - name: "({{ vm.hostname }}) vagrant destroy previous vm instance"
     shell: "vagrant destroy --machine-readable"
-    # become: true
     args:
       chdir: >-
         {{ vm_path }}
@@ -46,13 +44,9 @@
       'Domain is not created. Please run `vagrant up` first.' not in result_vagrant_destroy.stdout
     failed_when: false
 
-    # TODO: stop running machines not listed in vagrant or virsh list
-    # and erase its /var/lib/libvirt/images/* images (!?!)
-
   - name: "({{ vm.hostname }}) vagrant up"
     shell: "vagrant up --machine-readable"
     register: result_vagrant_up
-    # become: true
     args:
       chdir: >-
         {{ vm_path }}
@@ -69,7 +63,6 @@
   - name: "({{ vm.hostname }}) get vm ip address"
     shell: "vagrant ssh-config"
     register: result_vagrant_ssh_config
-    # become: true
     args:
       chdir: >-
         {{ vm_path }}
@@ -81,8 +74,6 @@
         {{ vm.hostname }}
       groups: >-
         {{ vagrant_provisioner_vms_group }}
-      # http://docs.ansible.com/ansible/intro_inventory.html#list-of-behavioral-inventory-parameters
-      # TODO regex o reject(...)
       state: present
       ansible_user: vagrant
       ansible_host: >-
@@ -110,7 +101,6 @@
 
   - name: "({{ vm.hostname }}) vagrant destroy"
     shell: "vagrant destroy --machine-readable"
-    # become: true
     args:
       removes: "Vagrantfile"
       chdir:   "{{ vm_path }}"
@@ -126,6 +116,5 @@
       path: "{{ vm_path }}"
       state: absent
       force: yes
-    # become: true
 
   when: vm.state == 'absent'

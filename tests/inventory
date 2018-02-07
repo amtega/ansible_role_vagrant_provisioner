@@ -1,3 +1,2 @@
 ---
-# TODO: Get vagrant current IP???
 localhost ansible_connection=local

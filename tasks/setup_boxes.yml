@@ -4,14 +4,8 @@
 - block:
 
   - name: add vagrant boxes
-    # Strangely keeps \n
-    # shell: >-
-    #   vagrant box add {{ box.name }}
-    #   --provider {{ box.provider }}
-    #   --machine-readable
     shell: >
       vagrant box add "{{ box.name }}" --provider {{ box.provider }} --machine-readable
-    # become: true
     when: box.state == 'present'
     with_items: "{{ vagrant_provisioner_boxes }}"
     register: result_vagrant_box_add
@@ -29,7 +23,6 @@
   - name: remove vagrant boxes
     shell: >
       vagrant box remove "{{ box.name }}" --machine-readable --force
-    # become: true
     when: box.state == 'absent'
     with_items: "{{ vagrant_provisioner_boxes }}"
     register: result_vagrant_box_remove

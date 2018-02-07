@@ -11,23 +11,23 @@
     role: amtega.vagrant_provisioner
     vagrant_provisioner_banner_message: Provision virtual machines
     vagrant_provisioner_boxes:
-    # - name: "centos/7"
-    #   state: present
-    #   provider: "libvirt"
+    - name: "centos/7"
+      state: present
+      provider: "libvirt"
     - name: "fedora/27-cloud-base"
       state: present
       provider: "libvirt"
     vagrant_provisioner_vms:
-    # - name: "centos_7"
-    #   state: present
-    #   hostname: "centos-7"
-    #   subdirectory: "centos_7"
-    #   box:
-    #     name: "centos/7"
-    #     provider: "libvirt"
-    #   driver: kvm
-    #   memory: 1024
-    #   cpus: 1
+    - name: "centos_7"
+      state: present
+      hostname: "centos-7"
+      subdirectory: "centos_7"
+      box:
+        name: "centos/7"
+        provider: "libvirt"
+      driver: kvm
+      memory: 1024
+      cpus: 1
     - name: "fedora_27_cloud_base"
       state: present
       hostname: "fedora-27-cloud-base"
@@ -67,10 +67,10 @@
     role: amtega.vagrant_provisioner
     vagrant_provisioner_banner_message: Cleanup provisioned virtual machines
     vagrant_provisioner_vms:
-    # - name: "centos_7"
-    #   state: absent
-    #   hostname: "centos-7"
-    #   subdirectory: "centos_7"
+    - name: "centos_7"
+      state: absent
+      hostname: "centos-7"
+      subdirectory: "centos_7"
     - name: "fedora_27_cloud_base"
       state: absent
       hostname: "fedora-27-cloud-base"
@@ -80,17 +80,13 @@
   - <<: *yaml_alias__cleanup_vms
     vagrant_provisioner_banner_message: (Idempotence test) Cleanup provisioned virtual machines
 
-  # Cleanup provisioned boxes
-  # TODO: https://access.redhat.com/documentation/en-us/red_hat_container_development_kit/2.2/html/installation_guide/uninstalling_or_reinstalling_container_development_kit#deleting_emphasis_role_strong_libvirt_emphasis_storage_images
-  # ls -la /var/lib/libvirt/images/*
-  # for F in /var/lib/libvirt/images/*; do sudo virsh vol-delete "$F" --pool default; done
   - &yaml_alias__cleanup_boxes
     role: amtega.vagrant_provisioner
     vagrant_provisioner_banner_message: Cleanup provisioned boxes
     vagrant_provisioner_boxes:
-    # - name: "centos/7"
-    #   state: absent
-    #   provider: "libvirt"
+    - name: "centos/7"
+      state: absent
+      provider: "libvirt"
     - name: "fedora/27-cloud-base"
       state: absent
       provider: "libvirt"

@@ -1,2 +1,26 @@
 ---
 # Role tasks
+
+- debug:
+    msg: '{{ "░" * 400 }} {{ vagrant_provisioner_banner_message }} {{ "░" * 400 }}'
+  when: vagrant_provisioner_banner_message is defined
+
+- name: setup boxes
+  include_tasks: setup_boxes.yml
+  when: vagrant_provisioner_boxes | length > 0
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::boxes
+
+- name: setup virtual machines
+  include_tasks: setup_vms.yml
+  when: vagrant_provisioner_vms | length > 0
+  with_items: >
+    {{ vagrant_provisioner_vms }}
+  loop_control:
+    label: >-
+      {{ vm.hostname }}
+    loop_var: vm
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::vms

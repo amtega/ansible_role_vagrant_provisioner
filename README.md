@@ -1,34 +1,113 @@
-# role_name
+# vagrant_provision
 
-A brief description of the role goes here.
+This is an [Ansible](http://www.ansible.com) role to provision a vagrant engine.
 
 ## Requirements
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+- Ansible >= 2.4
 
 ## Role Variables
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+Here is a list of all the default variables for this role, which are also available in `defaults/main.yml`.
+
+```yaml
+---
+  # List of vagrant boxes needed.
+  vagrant_provisioner_boxes: []
+
+  # List of virtual machines (vms) to provision.
+  vagrant_provisioner_vms: []
+
+  # Directory inwich will reside vagrantfiles, following the pattern:
+  #   virtual_machines/<vm.name>/Vagrantfile
+  vagrant_provisioner_vms_directory: .
+  # Created vms inventory file filename
+  vagrant_provisioner_inventory_filename: inventory_test
+  # Created vms inventory group name
+  vagrant_provisioner_vms_group: vagrant_vm
+  # Default Ansible Python interpreter
+  vagrant_provisioner_default_ansible_python_interpreter: /usr/bin/python2
+  # vagrant_provisioner_banner_message: Adds more explicit message (Disabled by default)
+  vagrant_provisioner_banner_message:
+```
 
 ## Dependencies
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+- amtega.vagrant_engine
 
 ## Example Playbook
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+This is an example playbook:
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+```yaml
+---
+- name: Create fedora 27 cloud base vagrant instance
+  hosts: localhost
+
+  roles:
+    role: ansible_vagrant_provisioner
+    # vagrant_provisioner_banner_message: Adds more explicit message
+    vagrant_provisioner_banner_message: Provision fedora/27-cloud-base virtual machine
+    vagrant_provisioner_boxes:
+    - name: "fedora/27-cloud-base"
+      # state: present or absent (to add remove the box)
+      state: present
+      # Vagrant provider: libvirt # Only tested with libvirt and docker
+      provider: "libvirt"
+    vagrant_provisioner_vms:
+    - name: "fedora_27_cloud_base"
+      # state: present or absent (to add remove the vm)
+      state: present
+      # DNS name of the vm
+      hostname: "fedora-27-cloud-base"
+      # Python interpreter (default python2)
+      ansible_python_interpreter: /usr/bin/python3
+      # subdirectory inside of {{ vagrant_provisioner_vms_directory }}
+      subdirectory: "fedora_27_cloud_base"
+      # Base Vagrant box
+      box:
+        name: "fedora/27-cloud-base"
+        provider: "libvirt"
+      driver: kvm
+      memory: 1024
+      cpus: 1
+
+---
+- name: Delete fedora 27 cloud base vagrant vm instance
+  hosts: localhost
+
+  roles:
+  - role: ansible_vagrant_provisioner
+    vagrant_provisioner_banner_message: Cleanup fedora 27 cloud base virtual machine
+    vagrant_provisioner_vms:
+    - name: "fedora_27_cloud_base"
+      state: absent
+      hostname: "fedora-27-cloud-base"
+      subdirectory: "fedora_27_cloud_base"
+
+---
+- name: Delete fedora 27 cloud base vagrant box
+  hosts: localhost
+
+  roles:
+  - role: ansible_vagrant_provisioner
+    vagrant_provisioner_banner_message: Cleanup fedora 27 cloud base virtual box
+    vagrant_provisioner_boxes:
+    - name: "fedora/27-cloud-base"
+      state: absent
+      provider: "libvirt"
+```
 
 ## Testing
 
-A description of how to run tests of the role if available.
+```shell
+$ cd ansible_vagrant_provisioner/tests
+$ ansible-playbook main.yml
+```
 
 ## License
 
-Copyright (C) <YEAR> AMTEGA - Xunta de Galicia
+Copyright (C) 2018 AMTEGA - Xunta de Galicia
 
 This role is free software: you can redistribute it and/or modify
 it under the terms of:
@@ -44,5 +123,4 @@ GNU General Public License for more details or European Union Public License for
 
 ## Author Information
 
-- author_name 1 ([mail_adrress_1](mailto:mail_address_1))
-- author_name N ([mail_adrress_N](mailto:mail_address_N))
+- Daniel Sánchez Fábregas ([daniel.sanchez.fabregas@xunta.gal](mailto:daniel.sanchez.fabregas@xunta.gal)). Amtega - Xunta de Galicia

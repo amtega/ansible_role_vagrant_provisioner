@@ -1,0 +1,11 @@
+Vagrant.configure(2) do |config|
+  config.vm.box = "{{ vm.box.name }}"
+  config.vm.define "{{ vm.name }}"
+  config.vm.hostname = "{{ vm.hostname }}"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.provider "{{ vm.box.provider }}" do |provider|
+  	provider.driver = "{{ vm.driver }}"
+  	provider.memory = {{ vm.memory }}
+  	provider.cpus = {{ vm.cpus }}
+  end
+end

@@ -84,6 +84,12 @@ $ cd ansible_vagrant_provisioner/tests
 $ ansible-playbook main.yml
 ```
 
+If you have vagrant engine configured you can avoid running dependant 'vagrant_engine' role (that usually requries root privileges) with the following commands:
+
+```shell
+$ cd amtega.ansible_vagrant_provisioner/test
+$ ansible-playbook --skip-tags "role::ansible_vagrant_provisioner" main.yml
+
 ## License
 
 Copyright (C) 2018 AMTEGA - Xunta de Galicia

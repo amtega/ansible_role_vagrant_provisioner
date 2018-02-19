@@ -59,10 +59,10 @@ This is an example playbook:
   - role: ansible_vagrant_provisioner
     vagrant_provisioner_banner_message: Cleanup fedora 27 cloud base virtual machine
     vagrant_provisioner_vms:
-    - name: "fedora_27_cloud_base"
-      state: absent
-      hostname: "fedora-27-cloud-base"
-      subdirectory: "fedora_27_cloud_base"
+      - name: "fedora_27_cloud_base"
+        state: absent
+        hostname: "fedora-27-cloud-base"
+        subdirectory: "fedora_27_cloud_base"
 
 ---
 - name: Delete fedora 27 cloud base vagrant box
@@ -72,9 +72,9 @@ This is an example playbook:
   - role: ansible_vagrant_provisioner
     vagrant_provisioner_banner_message: Cleanup fedora 27 cloud base virtual box
     vagrant_provisioner_boxes:
-    - name: "fedora/27-cloud-base"
-      state: absent
-      provider: "libvirt"
+      - name: "fedora/27-cloud-base"
+        state: absent
+        provider: "libvirt"
 ```
 
 ## Testing

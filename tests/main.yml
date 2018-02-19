@@ -5,7 +5,6 @@
   hosts: localhost
   roles:
     - role: amtega.vagrant_provisioner
-      vagrant_provisioner_banner_message: Provision virtual machines
       vagrant_provisioner_boxes:
         - name: centos/7
           state: present
@@ -38,13 +37,14 @@
 
 - name: ping new hosts
   gather_facts: false
-  hosts: vagrant_vm
+  hosts: vagrant_provisioner_vms
   become_user: vagrant
   tasks:
     - name: ping the vm
       ping:
     - name: shell into the vm
       shell: "cat /etc/*release*"
+      changed_when: false
       register: shell_into_vm_result
 
 - name: test the role vagrant_provisioner cleanup

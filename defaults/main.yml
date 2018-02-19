@@ -1,10 +1,15 @@
 ---
 # Role default lower priority variables
 
-# General vagrant settings
+# Directory to store vagrant files
 
-vagrant_provisioner_vms_directory: .
-vagrant_provisioner_vms_group: vagrant_vm
+vagrant_provisioner_vms_directory: "~/.vagrant"
+
+# Ansible group to put vagrant vms in
+
+vagrant_provisioner_vms_group: vagrant_provisioner_vms
+
+
 vagrant_provisioner_inventory_filename: inventory_test
 vagrant_provisioner_default_ansible_python_interpreter: /usr/bin/python2
 
@@ -27,7 +32,6 @@ vagrant_provisioner_boxes: []
 #   box:                     # What box is the vm derived from
 #     name: "centos/7"
 #     provider: "libvirt"
-#   # Virtual machine configuration parameters
 #   driver: kvm              # Virtual machine driver
 #   memory: 1024             # Virtual machine memory
 #   cpus: 1                  # Virtual machine number of CPUs }

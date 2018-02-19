@@ -1,39 +1,35 @@
 ---
 # Role default lower priority variables
 
-# List of dicts with the boxes to provision. The dicts must have the following
-# format:
-vagrant_provisioner_boxes: []
-# # List of boxes
-#   # Name of the box in VagrantCloud https://app.vagrantup.com
-# - name: "centos/7"
-#   # Provider: libvirt # Only tested with libvirt and docker
-#   provider: "libvirt"
-
-
-# List of dicts with the virtual machines (vms) to provision. The dicts must have the
-# following format:
-vagrant_provisioner_vms: []
-# # List of vms
-#   # Vm display name
-# - name: "centos_7"
-#   # state: present or absent (to add remove the vm)
-#   state: present
-#   # DNS name of the vm
-#   hostname: "centos-7"
-#   # subdirectory inside of {{ vagrant_provisioner_vms_directory }}
-#   subdirectory: "centos_7"
-#   # What box is the vm derived from
-#   box:
-#     name: "centos/7"
-#     provider: "libvirt"
-#   # Virtual machine configuration parameters
-#   driver: kvm
-#   memory: 1024
-#   cpus: 1
-
+# General vagrant settings
 
 vagrant_provisioner_vms_directory: .
 vagrant_provisioner_vms_group: vagrant_vm
 vagrant_provisioner_inventory_filename: inventory_test
 vagrant_provisioner_default_ansible_python_interpreter: /usr/bin/python2
+
+# List of dicts with the boxes to provisione. The dicts must have the following
+# format:
+#
+# { name: "centos/7"    # Name of the box in https://app.vagrantup.com
+#   provider: "libvirt" # Only tested with libvirt and docker}
+
+vagrant_provisioner_boxes: []
+
+# List of dicts with the virtual machines (vms) to provision. The dicts must have the
+# following format:
+#
+# { name: "centos_7"         # Display name
+#   state: present           # present or absent (to add remove the vm)
+#   hostname: "centos-7"     # DNS name of the vm#
+#   subdirectory: "centos_7" # subdirectory inside
+#                            # vagrant_provisioner_vms_directory#
+#   box:                     # What box is the vm derived from
+#     name: "centos/7"
+#     provider: "libvirt"
+#   # Virtual machine configuration parameters
+#   driver: kvm              # Virtual machine driver
+#   memory: 1024             # Virtual machine memory
+#   cpus: 1                  # Virtual machine number of CPUs }
+
+vagrant_provisioner_vms: []

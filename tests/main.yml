@@ -47,7 +47,7 @@
       shell: "cat /etc/*release*"
       register: shell_into_vm_result
 
-- name: test the role vagrant_engine cleanup
+- name: test the role vagrant_provisioner cleanup
   hosts: localhost
   roles:
     - role: amtega.vagrant_provisioner

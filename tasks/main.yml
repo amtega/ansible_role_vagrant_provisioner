@@ -9,7 +9,7 @@
     - role::vagrant_provisioner::boxes
 
 - name: setup vagrant virtual machines
-  include_tasks: vms.yml
+  include_tasks: vm.yml
   when: vagrant_provisioner_vms | length > 0
   with_items: "{{ vagrant_provisioner_vms }}"
   loop_control:

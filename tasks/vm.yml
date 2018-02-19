@@ -1,8 +1,6 @@
 ---
 # Setup vagrant vms
 
-
-
 - block:
     - block:
         - name: "({{ vm.hostname }}) create vagrant vm directories"

@@ -3,14 +3,13 @@
 
 galaxy_info:
   author: Daniel Sánchez Fábregas
-  description: Setup vagrant provisioner
+  description: Setup vagrant boxes and virtual machines
   company: AMTEGA - Xunta de Galicia
   license: GPLv3 or EUPL
-  min_ansible_version: 2.2
+  min_ansible_version: 2.4
   platforms:
   - name: Fedora
     versions:
-    - 25
     - 26
     - 27
   - name: EL
@@ -20,6 +19,7 @@ galaxy_info:
   galaxy_tags:
     - vagrant
     - system
+    - virtualization
 
 dependencies:
   - amtega.vagrant_engine

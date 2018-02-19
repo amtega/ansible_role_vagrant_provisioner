@@ -1,0 +1,133 @@
+---
+# Setup vagrant vms
+
+- block:
+    - block:
+        - name: "create vagrant directory for vm {{ vm.hostname }}"
+          file:
+            path: "{{ vm_path }}"
+            state: directory
+            force: yes
+            recurse: yes
+
+        - name: "create vagrant file for vm {{ vm.hostname }}"
+          template:
+            src: Vagrantfile.j2
+            dest: "{{ vm_path }}/Vagrantfile"
+            force: yes
+            backup: yes
+          register: vagrant_provisioner_create_vagrantfile_result
+
+        - name: "check vagrant status for vm {{ vm.hostname }}"
+          shell: "vagrant status --machine-readable"
+          args:
+            chdir: "{{ vm_path }}"
+          register: vagrant_provisioner_check_status_result
+          changed_when: false
+
+        - name: "destroy previous vm instance of {{ vm.hostname }}"
+          shell: "vagrant destroy --machine-readable"
+          args:
+            chdir: "{{ vm_path }}"
+          register: vagrant_provisioner_destroy_result
+          when: >-
+            vagrant_provisioner_create_vagrantfile_result.changed
+            and ',state,not_created'
+                not in vagrant_provisioner_check_status_result.stdout
+          changed_when: >-
+            'Domain is not created. Please run `vagrant up` first.'
+            not in vagrant_provisioner_destroy_result.stdout
+          failed_when: false
+
+        - name: "vagrant up {{ vm.hostname }}"
+          shell: "vagrant up --machine-readable"
+          register: result_vagrant_up
+          args:
+            chdir: "{{ vm_path }}"
+          when: >-
+            ',state,running'
+            not in vagrant_provisioner_check_status_result.stdout
+          changed_when: >
+            result_vagrant_up.rc == 0
+            and ',action,up,start' in result_vagrant_up.stdout
+            and ',action,up,end' in result_vagrant_up.stdout
+          failed_when: >-
+            ',ui,error,' in result_vagrant_up.stdout
+            or result_vagrant_up.rc == 1
+
+        - name: "get vagrant vm ip address {{ vm.hostname }}"
+          shell: "vagrant ssh-config"
+          register: result_vagrant_ssh_config
+          args:
+            chdir: "{{ vm_path }}"
+          changed_when: false
+
+        - name: "associate auth/group info to vagrant vm {{ vm.hostname }}"
+          add_host:
+            name: "{{ vm.hostname }}"
+            groups: "{{ vagrant_provisioner_vms_group }}"
+            state: present
+            ansible_user: vagrant
+            ansible_host: >-
+              {{ result_vagrant_ssh_config.stdout_lines[1][11:] }}
+              {{ result_vagrant_ssh_config.stdout
+                 | regex_replace(
+                     '^(?sm).*\n *HostName *(?P<hostname>[^\n]+)\n.*$',
+                     '\1') }}
+            ansible_ssh_private_key_file: >-
+              {{ result_vagrant_ssh_config.stdout
+                 | regex_replace(
+                     '^(?sm).*\n *IdentityFile *(?P<identityfile>[^\n]+)\n.*$',
+                     '\1') }}
+            # HACK: Without this it ignores ansible.cfg host_key_checking var
+            ansible_ssh_extra_args: >-
+              -o StrictHostKeyChecking=no
+            ansible_python_interpreter: >-
+              {{ vm.ansible_python_interpreter | default(vagrant_provisioner_default_ansible_python_interpreter) }}
+          changed_when: false
+
+        - name: "gather vagrant ssh public key form vm {{ vm.hostname }}"
+          shell: >-
+            ssh-keyscan -T 10 {{ hostvars[vm.hostname]['ansible_host'] }}
+          changed_when: false
+          register: vagrant_provisioner_get_public_key_result
+          check_mode: no
+
+        - name: "remove old ssh known_hosts entries for vm {{ vm.hostname }}"
+          known_hosts:
+            name: >-
+              {{ vagrant_provisioner_get_public_key_result.stdout }}
+            state: absent
+      when: vm.state == 'present'
+
+    - block:
+        - name: "check vagrant vm directory status for vm {{ vm.hostname }}"
+          stat:
+            path: "{{ vm_path }}"
+          register: vagrant_provisioner_check_path_result
+
+        - name: "vagrant destroy vm {{ vm.hostname }}"
+          shell: "vagrant destroy --machine-readable"
+          args:
+            removes: "Vagrantfile"
+            chdir: "{{ vm_path }}"
+          register: vagrant_provisioner_destroy_result
+          when: >-
+            vagrant_provisioner_check_path_result.stat.isdir
+            is defined and vagrant_provisioner_check_path_result.stat.isdir
+          changed_when: >-
+            'Domain is not created. Please run `vagrant up` first.'
+            not in vagrant_provisioner_destroy_result.stdout
+          failed_when: false
+
+        - name: "remove vagrant vm directory for vm {{ vm.hostname }}"
+          file:
+            path: "{{ vm_path }}"
+            state: absent
+            force: yes
+      when: vm.state == 'absent'
+  vars:
+    vm_path: >-
+      {{ vagrant_provisioner_vms_directory | expanduser
+         + "/virtual_machines/"
+         + vm.subdirectory }}

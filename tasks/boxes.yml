@@ -1,0 +1,47 @@
+---
+# Setup vagrant boxes
+
+- block:
+    - name: add vagrant boxes
+      shell: >-
+        vagrant box add "{{ box.name }}"
+        --provider {{ box.provider }}
+        --machine-readable
+      when: box.state == "present"
+      with_items: "{{ vagrant_provisioner_boxes }}"
+      register: result_vagrant_box_add_result
+      failed_when: >
+        ",ui,error,The box you're attempting to add already exists."
+          not in result_vagrant_box_add_result.stdout
+        and result_vagrant_box_add_result.rc == 1
+      changed_when: >
+        "Successfully added box" in result_vagrant_box_add_result.stdout
+        and result_vagrant_box_add_result.rc == 0
+      loop_control:
+        label: "{{ box.name }}"
+        loop_var: box
+
+    - name: remove vagrant boxes
+      shell: >-
+        vagrant box remove "{{ box.name }}"
+        --provider {{ box.provider }}
+        --machine-readable
+        --all
+        --force
+      when: box.state == "absent"
+      with_items: "{{ vagrant_provisioner_boxes }}"
+      register: result_vagrant_box_remove
+      failed_when: >
+        ",error-exit,Vagrant::Errors::BoxRemoveNotFound,"
+          not in result_vagrant_box_remove.stdout
+        and result_vagrant_box_remove.rc == 1
+      changed_when: >
+        ",ui,info,From libvirt storage pool you have to delete image manually"
+          in result_vagrant_box_remove.stdout
+        and result_vagrant_box_remove.rc == 0
+      loop_control:
+        label: "{{ box.name }}"
+        loop_var: box
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::boxes

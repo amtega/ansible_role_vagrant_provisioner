@@ -8,28 +8,7 @@ This is an [Ansible](http://www.ansible.com) role to provision a vagrant engine.
 
 ## Role Variables
 
-Here is a list of all the default variables for this role, which are also available in `defaults/main.yml`.
-
-```yaml
----
-  # List of vagrant boxes needed.
-  vagrant_provisioner_boxes: []
-
-  # List of virtual machines (vms) to provision.
-  vagrant_provisioner_vms: []
-
-  # Directory inwich will reside vagrantfiles, following the pattern:
-  #   virtual_machines/<vm.name>/Vagrantfile
-  vagrant_provisioner_vms_directory: .
-  # Created vms inventory file filename
-  vagrant_provisioner_inventory_filename: inventory_test
-  # Created vms inventory group name
-  vagrant_provisioner_vms_group: vagrant_vm
-  # Default Ansible Python interpreter
-  vagrant_provisioner_default_ansible_python_interpreter: /usr/bin/python2
-  # vagrant_provisioner_banner_message: Adds more explicit message (Disabled by default)
-  vagrant_provisioner_banner_message:
-```
+A list of all the default variables for this role is available in `defaults/main.yml`.
 
 ## Dependencies
 
@@ -47,30 +26,30 @@ This is an example playbook:
   roles:
     role: ansible_vagrant_provisioner
     # vagrant_provisioner_banner_message: Adds more explicit message
-    vagrant_provisioner_banner_message: Provision fedora/27-cloud-base virtual machine
+    vagrant_provisioner_banner_message: Provision fedora/27-cloud-base vm
     vagrant_provisioner_boxes:
-    - name: "fedora/27-cloud-base"
-      # state: present or absent (to add remove the box)
-      state: present
-      # Vagrant provider: libvirt # Only tested with libvirt and docker
-      provider: "libvirt"
-    vagrant_provisioner_vms:
-    - name: "fedora_27_cloud_base"
-      # state: present or absent (to add remove the vm)
-      state: present
-      # DNS name of the vm
-      hostname: "fedora-27-cloud-base"
-      # Python interpreter (default python2)
-      ansible_python_interpreter: /usr/bin/python3
-      # subdirectory inside of {{ vagrant_provisioner_vms_directory }}
-      subdirectory: "fedora_27_cloud_base"
-      # Base Vagrant box
-      box:
-        name: "fedora/27-cloud-base"
+      - name: "fedora/27-cloud-base"
+        # state: present or absent (to add remove the box)
+        state: present
+        # Vagrant provider: libvirt # Only tested with libvirt and docker
         provider: "libvirt"
-      driver: kvm
-      memory: 1024
-      cpus: 1
+    vagrant_provisioner_vms:
+      - name: "fedora_27_cloud_base"
+        # state: present or absent (to add remove the vm)
+        state: present
+        # DNS name of the vm
+        hostname: "fedora-27-cloud-base"
+        # Python interpreter (default python2)
+        ansible_python_interpreter: /usr/bin/python2
+        # subdirectory inside of {{ vagrant_provisioner_vms_directory }}
+        subdirectory: "fedora_27_cloud_base"
+        # Base Vagrant box
+        box:
+          name: "fedora/27-cloud-base"
+          provider: "libvirt"
+        driver: kvm
+        memory: 1024
+        cpus: 1
 
 ---
 - name: Delete fedora 27 cloud base vagrant vm instance
@@ -80,10 +59,10 @@ This is an example playbook:
   - role: ansible_vagrant_provisioner
     vagrant_provisioner_banner_message: Cleanup fedora 27 cloud base virtual machine
     vagrant_provisioner_vms:
-    - name: "fedora_27_cloud_base"
-      state: absent
-      hostname: "fedora-27-cloud-base"
-      subdirectory: "fedora_27_cloud_base"
+      - name: "fedora_27_cloud_base"
+        state: absent
+        hostname: "fedora-27-cloud-base"
+        subdirectory: "fedora_27_cloud_base"
 
 ---
 - name: Delete fedora 27 cloud base vagrant box
@@ -93,9 +72,9 @@ This is an example playbook:
   - role: ansible_vagrant_provisioner
     vagrant_provisioner_banner_message: Cleanup fedora 27 cloud base virtual box
     vagrant_provisioner_boxes:
-    - name: "fedora/27-cloud-base"
-      state: absent
-      provider: "libvirt"
+      - name: "fedora/27-cloud-base"
+        state: absent
+        provider: "libvirt"
 ```
 
 ## Testing
@@ -104,6 +83,12 @@ This is an example playbook:
 $ cd ansible_vagrant_provisioner/tests
 $ ansible-playbook main.yml
 ```
+
+If you have vagrant engine configured you can avoid running dependant 'vagrant_engine' role (that usually requries root privileges) with the following commands:
+
+```shell
+$ cd amtega.vagrant_provisioner/test
+$ ansible-playbook --skip-tags "role::vagrant_engine" main.yml
 
 ## License
 
@@ -123,4 +108,4 @@ GNU General Public License for more details or European Union Public License for
 
 ## Author Information
 
-- Daniel Sánchez Fábregas ([daniel.sanchez.fabregas@xunta.gal](mailto:daniel.sanchez.fabregas@xunta.gal)). Amtega - Xunta de Galicia
+- Daniel Sánchez Fábregas.

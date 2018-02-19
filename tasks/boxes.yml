@@ -24,7 +24,9 @@
     - name: remove vagrant boxes
       shell: >-
         vagrant box remove "{{ box.name }}"
+        --provider {{ box.provider }}
         --machine-readable
+        --all
         --force
       when: box.state == "absent"
       with_items: "{{ vagrant_provisioner_boxes }}"

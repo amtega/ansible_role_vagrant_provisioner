@@ -8,28 +8,7 @@ This is an [Ansible](http://www.ansible.com) role to provision a vagrant engine.
 
 ## Role Variables
 
-Here is a list of all the default variables for this role, which are also available in `defaults/main.yml`.
-
-```yaml
----
-  # List of vagrant boxes needed.
-  vagrant_provisioner_boxes: []
-
-  # List of virtual machines (vms) to provision.
-  vagrant_provisioner_vms: []
-
-  # Directory inwich will reside vagrantfiles, following the pattern:
-  #   virtual_machines/<vm.name>/Vagrantfile
-  vagrant_provisioner_vms_directory: .
-  # Created vms inventory file filename
-  vagrant_provisioner_inventory_filename: inventory_test
-  # Created vms inventory group name
-  vagrant_provisioner_vms_group: vagrant_vm
-  # Default Ansible Python interpreter
-  vagrant_provisioner_default_ansible_python_interpreter: /usr/bin/python2
-  # vagrant_provisioner_banner_message: Adds more explicit message (Disabled by default)
-  vagrant_provisioner_banner_message:
-```
+A list of all the default variables for this role is available in `defaults/main.yml`.
 
 ## Dependencies
 

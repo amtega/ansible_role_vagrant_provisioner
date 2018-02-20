@@ -57,9 +57,11 @@
 
     - role: amtega.vagrant_provisioner
       vagrant_provisioner_boxes:
-        - name: "centos_7"
+        - name: centos_7
+          address: centos/7
           state: absent
-          provider: "libvirt"
-        - name: "fedora_27"
+          provider: libvirt
+        - name: fedora_27
+          address: fedora/27-cloud-base
           state: absent
-          provider: "libvirt"
+          provider: libvirt

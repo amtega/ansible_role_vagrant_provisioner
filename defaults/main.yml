@@ -9,31 +9,52 @@ vagrant_provisioner_vms_directory: "~/.vagrant"
 
 vagrant_provisioner_vms_group: vagrant_provisioner_vms
 
-
-vagrant_provisioner_inventory_filename: inventory_test
-vagrant_provisioner_default_ansible_python_interpreter: /usr/bin/python2
-
 # List of dicts with the boxes to provisione. The dicts must have the following
 # format:
 #
-# { name: "centos/7"    # Name of the box in https://app.vagrantup.com
-#   provider: "libvirt" # Only tested with libvirt and docker}
+# { name: "centos_7"               # Display name
+#   address: "centos/7"            # Name in https://app.vagrantup.com
+#   provider: "libvirt"            # Only tested with libvirt and docker }
 
 vagrant_provisioner_boxes: []
 
-# List of dicts with the virtual machines (vms) to provision. The dicts must have the
-# following format:
+# List of dicts with the virtual machines (vms) to provision. The dicts must
+# have the following format:
 #
 # { name: "centos_7"         # Display name
+#   box: "centos_7"          # What box is the vm derived from
 #   state: present           # present or absent (to add remove the vm)
 #   hostname: "centos-7"     # DNS name of the vm#
-#   subdirectory: "centos_7" # subdirectory inside
-#                            # vagrant_provisioner_vms_directory#
-#   box:                     # What box is the vm derived from
-#     name: "centos/7"
-#     provider: "libvirt"
+#   subdirectory: "centos_7" # Subdirectory inside
+#                            # vagrant_provisioner_vms_directory
+#                            # (if not provided default is name)
 #   driver: kvm              # Virtual machine driver
 #   memory: 1024             # Virtual machine memory
-#   cpus: 1                  # Virtual machine number of CPUs }
+#   cpus: 1                  # Virtual machine number of CPUs
+#
+#   # The vm also supports the following optional ansible behavioral inventory
+#   # parameters. The defaults values are indicated below.
+#   #
+#   # Look at http://docs.ansible.com/ansible/latest/intro_inventory.html for
+#   # details.
+#
+#   ansible_connection: ssh
+#   ansible_port: 22
+#   ansible_user: vagrant
+#   ansible_ssh_pass:
+#   ansible_ssh_private_key_file:
+#   ansible_ssh_common_args:
+#   ansible_scp_extra_args:
+#   ansible_ssh_extra_args:
+#   ansible_ssh_pipelining: false
+#   ansible_ssh_executable: ssh
+#   ansible_become: false
+#   ansible_become_method: sudo
+#   ansible_become_user: root
+#   ansible_become_pass:
+#   ansible_become_exe: sudo
+#   ansible_become_flags: "-H -S -n"
+#   ansible_python_interpreter: /usr/bin/python
+#   ansible_shell_executable: /bin/sh }
 
 vagrant_provisioner_vms: []

@@ -67,23 +67,50 @@
             name: "{{ vm.hostname }}"
             groups: "{{ vagrant_provisioner_vms_group }}"
             state: present
-            ansible_user: vagrant
+            ansible_connection: "{{ vm.ansible_connection | default('ssh') }}"
             ansible_host: >-
               {{ result_vagrant_ssh_config.stdout_lines[1][11:] }}
               {{ result_vagrant_ssh_config.stdout
                  | regex_replace(
                      '^(?sm).*\n *HostName *(?P<hostname>[^\n]+)\n.*$',
                      '\1') }}
+            ansible_port: "{{ vm.ansible_port | default('22') }}"
+            ansible_user: "{{ vm.ansible_user | default('vagrant') }}"
+            ansible_ssh_pass: >-
+              "{{ vm.ansible_ssh_pass | default('') }}"
             ansible_ssh_private_key_file: >-
-              {{ result_vagrant_ssh_config.stdout
-                 | regex_replace(
-                     '^(?sm).*\n *IdentityFile *(?P<identityfile>[^\n]+)\n.*$',
-                     '\1') }}
-            # HACK: Without this it ignores ansible.cfg host_key_checking var
+              {{ vm.ansible_ssh_private_key_file
+                 | default(result_vagrant_ssh_config.stdout
+                           | regex_replace(
+                           '^(?sm).*\n *IdentityFile *'
+                           + '(?P<identityfile>[^\n]+)\n.*$',
+                           '\1')) }}
+            ansible_ssh_common_args: >-
+              "{{ vm.ansible_ssh_common_args | default('') }}"
+            ansible_scp_extra_args: >-
+              "{{ vm.ansible_scp_extra_args | default('') }}"
             ansible_ssh_extra_args: >-
-              -o StrictHostKeyChecking=no
-            ansible_python_interpreter: >-
-              {{ vm.ansible_python_interpreter | default(vagrant_provisioner_default_ansible_python_interpreter) }}
+              "{{ vm.ansible_ssh_extra_args | default('') }}"
+            ansible_ssh_pipelining: >-
+              "{{ vm.ansible_ssh_pipelining | default(false) }}"
+            ansible_ssh_executable:
+              "{{ vm.ansible_ssh_pipelining | default('ssh') }}"
+            ansible_become: >-
+              "{{ vm.ansible_become | default(false) }}"
+            ansible_become_method: >-
+              "{{ vm.ansible_become_method | default('sudo') }}"
+            ansible_become_user: >-
+              "{{ vm.ansible_become_user | default('root') }}"
+            ansible_become_pass: >-
+              "{{ vm.ansible_become_pass | default('') }}"
+            ansible_become_exe: >-
+              "{{ vm.ansible_become_exe | default('sudo') }}"
+            ansible_become_flags: >-
+              "{{ vm.ansible_become_flags | default('-H -S -n') }}"
+            ansible_python_interpreter:
+              "{{ vm.ansible_python_interpreter | default('/usr/bin/python') }}"
+            ansible_shell_executable:
+              "{{ vm.ansible_shell_executable | default('/bin/sh') }}"
           changed_when: false
 
         - name: "gather vagrant ssh public key form vm {{ vm.hostname }}"
@@ -107,7 +134,7 @@
           register: vagrant_provisioner_check_path_result
 
         - name: "vagrant destroy vm {{ vm.hostname }}"
-          shell: "vagrant destroy --machine-readable"
+          shell: "vagrant destroy --force --machine-readable"
           args:
             removes: "Vagrantfile"
             chdir: "{{ vm_path }}"
@@ -115,10 +142,13 @@
           when: >-
             vagrant_provisioner_check_path_result.stat.isdir
             is defined and vagrant_provisioner_check_path_result.stat.isdir
-          changed_when: >-
-            'Domain is not created. Please run `vagrant up` first.'
-            not in vagrant_provisioner_destroy_result.stdout
+          changed_when:
+            stdout | search("action,destroy,start")
+            and stdout | search("action,destroy,end")
+            and not stdout | search("Domain is not created")
           failed_when: false
+          vars:
+            stdout: vagrant_provisioner_destroy_result.stdout
 
         - name: "remove vagrant vm directory for vm {{ vm.hostname }}"
           file:
@@ -130,4 +160,4 @@
     vm_path: >-
       {{ vagrant_provisioner_vms_directory | expanduser
          + "/virtual_machines/"
-         + vm.subdirectory }}
+         + vm.subdirectory | default(vm.name) }}

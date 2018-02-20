@@ -4,7 +4,7 @@
 - block:
     - name: add vagrant boxes
       shell: >-
-        vagrant box add "{{ box.name }}"
+        vagrant box add "{{ box.address }}"
         --provider {{ box.provider }}
         --machine-readable
       when: box.state == "present"
@@ -23,7 +23,7 @@
 
     - name: remove vagrant boxes
       shell: >-
-        vagrant box remove "{{ box.name }}"
+        vagrant box remove "{{ box.address }}"
         --provider {{ box.provider }}
         --machine-readable
         --all

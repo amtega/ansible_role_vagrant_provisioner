@@ -2,7 +2,7 @@
 # Role dependencies
 
 galaxy_info:
-  author: Daniel Sánchez Fábregas
+  author: Daniel Sánchez Fábregas / Juan Antonio Valiño García
   description: Setup vagrant boxes and virtual machines
   company: AMTEGA - Xunta de Galicia
   license: GPLv3 or EUPL

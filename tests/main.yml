@@ -6,31 +6,27 @@
   roles:
     - role: amtega.vagrant_provisioner
       vagrant_provisioner_boxes:
-        - name: centos/7
+        - name: centos_7
+          address: centos/7
           state: present
           provider: libvirt
-        - name: fedora/27-cloud-base
+        - name: fedora_27
+          address: fedora/27-cloud-base
           state: present
           provider: libvirt
       vagrant_provisioner_vms:
         - name: centos_7
           state: present
           hostname: centos-7
-          subdirectory: centos_7
-          box:
-            name: centos/7
-            provider: libvirt
+          box: centos_7
           driver: kvm
           memory: 1024
           cpus: 1
-        - name: fedora_27_cloud_base
+        - name: fedora_27
           state: present
-          hostname: fedora-27-cloud-base
+          hostname: fedora-27
           ansible_python_interpreter: /usr/bin/python3
-          subdirectory: fedora_27_cloud_base
-          box:
-            name: fedora/27-cloud-base
-            provider: libvirt
+          box: fedora_27
           driver: kvm
           memory: 1024
           cpus: 1
@@ -51,23 +47,21 @@
   hosts: localhost
   roles:
     - role: amtega.vagrant_provisioner
-      vagrant_provisioner_banner_message: Cleanup provisioned virtual machines
       vagrant_provisioner_vms:
         - name: "centos_7"
           state: absent
           hostname: "centos-7"
-          subdirectory: "centos_7"
-        - name: "fedora_27_cloud_base"
+        - name: "fedora_27"
           state: absent
-          hostname: "fedora-27-cloud-base"
-          subdirectory: "fedora_27_cloud_base"
+          hostname: "fedora-27"
 
     - role: amtega.vagrant_provisioner
-      vagrant_provisioner_banner_message: Cleanup provisioned boxes
       vagrant_provisioner_boxes:
-        - name: "centos/7"
+        - name: centos_7
+          address: centos/7
           state: absent
-          provider: "libvirt"
-        - name: "fedora/27-cloud-base"
+          provider: libvirt
+        - name: fedora_27
+          address: fedora/27-cloud-base
           state: absent
-          provider: "libvirt"
+          provider: libvirt

@@ -4,10 +4,12 @@
 - block:
     - name: add vagrant boxes
       shell: >-
-        vagrant box add "{{ box.address }}"
-        --provider {{ box.provider }}
+        vagrant box add
+        "{{ box.address }}"
+        --provider
+        {{ box.provider | default(vagrant_provisioner_box_provider) }}
         --machine-readable
-      when: box.state == "present"
+      when: box.state | default(vagrant_provisioner_box_state) == "present"
       with_items: "{{ vagrant_provisioner_boxes }}"
       register: result_vagrant_box_add_result
       failed_when: >
@@ -23,12 +25,14 @@
 
     - name: remove vagrant boxes
       shell: >-
-        vagrant box remove "{{ box.address }}"
-        --provider {{ box.provider }}
+        vagrant box remove
+        "{{ box.address }}"
+        --provider
+        {{ box.provider | default(vagrant_provisioner_box_provider) }}
         --machine-readable
         --all
         --force
-      when: box.state == "absent"
+      when: box.state | default(vagrant_provisioner_box_state) == "absent"
       with_items: "{{ vagrant_provisioner_boxes }}"
       register: result_vagrant_box_remove
       failed_when: >

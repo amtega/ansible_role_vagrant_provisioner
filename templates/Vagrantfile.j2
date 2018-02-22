@@ -6,9 +6,9 @@ Vagrant.configure(2) do |config|
   config.vm.define "{{ vm.name }}"
   config.vm.hostname = "{{ vm.hostname }}"
   config.vm.synced_folder ".", "/vagrant", disabled: true
-  config.vm.provider "{{ box.provider }}" do |provider|
-  	provider.driver = "{{ vm.driver }}"
-  	provider.memory = {{ vm.memory }}
-  	provider.cpus = {{ vm.cpus }}
+  config.vm.provider "{{ box.provider | default(vagrant_provisioner_box_provider) }}" do |provider|
+  	provider.driver = "{{ vm.driver | default(vagrant_provisioner_vm_driver) }}"
+  	provider.memory = {{ vm.memory | default(vagrant_provisioner_vm_memory) }}
+  	provider.cpus = {{ vm.cpus | default(vagrant_provisioner_vm_cpus) }}
   end
 end

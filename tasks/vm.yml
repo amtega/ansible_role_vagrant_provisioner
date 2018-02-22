@@ -68,7 +68,7 @@
             groups: >-
               {{ vm.groups | default([])
                 + vagrant_provisioner_vms_groups }}
-            state: present
+            state: started
             ansible_connection: >-
               {{ vm.ansible_connection
                  | default(vagrant_provisioner_vm_ansible_connection) }}
@@ -155,7 +155,7 @@
             backup: no
           when: >
             vagrant_provisioner_inventory | default("") | length > 0
-      when: vm.state | default(vagrant_provisioner_vm_state) == 'present'
+      when: vm.state | default(vagrant_provisioner_vm_state) == 'started'
 
     - block:
         - name: "check vagrant vm directory status for vm {{ vm.hostname }}"

@@ -17,7 +17,7 @@
   roles:
     - role: amtega.vagrant_provisioner
       vagrant_provisioner_box_state: present
-      vagrant_provisioner_vm_state: present
+      vagrant_provisioner_vm_state: started
 
 - name: ping provisioned vms
   gather_facts: false
@@ -31,9 +31,9 @@
       changed_when: false
       register: shell_into_vm_result
 
-# - name: test boxes and vms cleanup
-#   hosts: localhost
-#   roles:
-#     - role: amtega.vagrant_provisioner
-#       vagrant_provisioner_box_state: absent
-#       vagrant_provisioner_vm_state: absent
+- name: test boxes and vms cleanup
+  hosts: localhost
+  roles:
+    - role: amtega.vagrant_provisioner
+      vagrant_provisioner_box_state: absent
+      vagrant_provisioner_vm_state: absent

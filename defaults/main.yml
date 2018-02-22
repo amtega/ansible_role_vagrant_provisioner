@@ -30,7 +30,7 @@ vagrant_provisioner_box_state: "present"
 #
 # { name: "centos_7"         # Display name
 #   box: "centos_7"          # What box is the vm derived from
-#   state: present           # present or absent (to add remove the vm)
+#   state: started           # started or absent (to add remove the vm)
 #   hostname: "centos-7"     # DNS name of the vm#
 #   subdirectory: "centos_7" # Subdirectory inside
 #                            # vagrant_provisioner_vms_directory
@@ -70,7 +70,7 @@ vagrant_provisioner_vms: []
 # General vm options to apply if no other ones are specified in the specific
 # container dictionary of the vagrant_provisioner_vms variable.
 
-vagrant_provisioner_vm_state: present
+vagrant_provisioner_vm_state: started
 vagrant_provisioner_vm_driver: kvm
 vagrant_provisioner_vm_memory: 1024
 vagrant_provisioner_vm_cpus: 1

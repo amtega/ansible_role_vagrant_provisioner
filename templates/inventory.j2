@@ -1,6 +1,6 @@
 {{ ansible_managed | comment }}
 {% for vm in vagrant_provisioner_vms %}
-{% if vm.state | default(docker_provisioner_container_state) == "started" %}
+{% if vm.state | default(vagrant_provisioner_container_state) == "started" %}
 {% set vars = hostvars[vm.hostname] %}
 {% for group in vm.groups | default(vagrant_provisioner_container_groups) %}
 

@@ -67,17 +67,24 @@
             name: "{{ vm.hostname }}"
             groups: "{{ vagrant_provisioner_vms_group }}"
             state: present
-            ansible_connection: "{{ vm.ansible_connection | default('ssh') }}"
+            ansible_connection: >-
+              {{ vm.ansible_connection
+                 | default(vagrant_provisioner_vm_ansible_connection) }}
             ansible_host: >-
               {{ result_vagrant_ssh_config.stdout_lines[1][11:] }}
               {{ result_vagrant_ssh_config.stdout
                  | regex_replace(
                      '^(?sm).*\n *HostName *(?P<hostname>[^\n]+)\n.*$',
                      '\1') }}
-            ansible_port: "{{ vm.ansible_port | default('22') }}"
-            ansible_user: "{{ vm.ansible_user | default('vagrant') }}"
+            ansible_port: >-
+              {{ vm.ansible_port
+                 | default(vagrant_provisioner_vm_ansible_port) }}
+            ansible_user: >-
+              {{ vm.ansible_user
+                 | default(vagrant_provisioner_vm_ansible_user) }}
             ansible_ssh_pass: >-
-              "{{ vm.ansible_ssh_pass | default('') }}"
+              {{ vm.ansible_ssh_pass
+                 | default(vagrant_provisioner_vm_ansible_ssh_pass) }}
             ansible_ssh_private_key_file: >-
               {{ vm.ansible_ssh_private_key_file
                  | default(result_vagrant_ssh_config.stdout
@@ -86,31 +93,44 @@
                            + '(?P<identityfile>[^\n]+)\n.*$',
                            '\1')) }}
             ansible_ssh_common_args: >-
-              "{{ vm.ansible_ssh_common_args | default('') }}"
+              {{ vm.ansible_ssh_common_args
+                | default(vagrant_provisioner_vm_ansible_ssh_common_args) }}
             ansible_scp_extra_args: >-
-              "{{ vm.ansible_scp_extra_args | default('') }}"
+              {{ vm.ansible_scp_extra_args
+                 | default(vagrant_provisioner_vm_ansible_scp_extra_args) }}
             ansible_ssh_extra_args: >-
-              "{{ vm.ansible_ssh_extra_args | default('') }}"
+              {{ vm.ansible_ssh_extra_args
+                 | default(vagrant_provisioner_vm_ansible_scp_extra_args) }}
             ansible_ssh_pipelining: >-
-              "{{ vm.ansible_ssh_pipelining | default(false) }}"
-            ansible_ssh_executable:
-              "{{ vm.ansible_ssh_pipelining | default('ssh') }}"
+              {{ vm.ansible_ssh_pipelining
+                 | default(vagrant_provisioner_vm_ansible_ssh_pipelining) }}
+            ansible_ssh_executable: >-
+              {{ vm.ansible_ssh_executable
+                 | default(vagrant_provisioner_vm_ansible_ssh_executable) }}
             ansible_become: >-
-              "{{ vm.ansible_become | default(false) }}"
+              {{ vm.ansible_become
+                 | default(vagrant_provisioner_vm_ansible_become) }}
             ansible_become_method: >-
-              "{{ vm.ansible_become_method | default('sudo') }}"
+              {{ vm.ansible_become_method
+                 | default(vagrant_provisioner_vm_ansible_become_method) }}
             ansible_become_user: >-
-              "{{ vm.ansible_become_user | default('root') }}"
+              {{ vm.ansible_become_user
+                 | default(vagrant_provisioner_vm_ansible_become_user) }}
             ansible_become_pass: >-
-              "{{ vm.ansible_become_pass | default('') }}"
+              {{ vm.ansible_become_pass
+                 | default(vagrant_provisioner_vm_ansible_become_pass) }}
             ansible_become_exe: >-
-              "{{ vm.ansible_become_exe | default('sudo') }}"
+              {{ vm.ansible_become_exe
+                 | default(vagrant_provisioner_vm_ansible_become_exe) }}
             ansible_become_flags: >-
-              "{{ vm.ansible_become_flags | default('-H -S -n') }}"
-            ansible_python_interpreter:
-              "{{ vm.ansible_python_interpreter | default('/usr/bin/python') }}"
-            ansible_shell_executable:
-              "{{ vm.ansible_shell_executable | default('/bin/sh') }}"
+              {{ vm.ansible_become_flags
+                 | default(vagrant_provisioner_vm_ansible_become_flags) }}
+            ansible_python_interpreter: >-
+              {{ vm.ansible_python_interpreter
+                 | default(vagrant_provisioner_vm_ansible_python_interpreter) }}
+            ansible_shell_executable: >-
+              {{ vm.ansible_shell_executable
+                 | default(vagrant_provisioner_vm_ansible_shell_executable) }}
           changed_when: false
 
         - name: "gather vagrant ssh public key form vm {{ vm.hostname }}"
@@ -125,7 +145,7 @@
             name: >-
               {{ vagrant_provisioner_get_public_key_result.stdout }}
             state: absent
-      when: vm.state == 'present'
+      when: vm.state | default(vagrant_provisioner_vm_state) == 'present'
 
     - block:
         - name: "check vagrant vm directory status for vm {{ vm.hostname }}"
@@ -155,7 +175,7 @@
             path: "{{ vm_path }}"
             state: absent
             force: yes
-      when: vm.state == 'absent'
+      when: vm.state | default(vagrant_provisioner_vm_state) == 'absent'
   vars:
     vm_path: >-
       {{ vagrant_provisioner_vms_directory | expanduser

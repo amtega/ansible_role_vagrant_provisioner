@@ -14,9 +14,16 @@ vagrant_provisioner_vms_group: vagrant_provisioner_vms
 #
 # { name: "centos_7"               # Display name
 #   address: "centos/7"            # Name in https://app.vagrantup.com
-#   provider: "libvirt"            # Only tested with libvirt and docker }
+#   provider: "libvirt"            # Only tested with libvirt and docker
+#   state: present                 # present or absent (to add remove the box)}
 
 vagrant_provisioner_boxes: []
+
+# Box options to apply if no other ones are specified in the specific
+# image dictionary of the vagrant_provisioner_boxes variable.
+
+vagrant_provisioner_box_provider: "libvirt"
+vagrant_provisioner_box_state: "present"
 
 # List of dicts with the virtual machines (vms) to provision. The dicts must
 # have the following format:
@@ -42,7 +49,8 @@ vagrant_provisioner_boxes: []
 #   ansible_port: 22
 #   ansible_user: vagrant
 #   ansible_ssh_pass:
-#   ansible_ssh_private_key_file:
+#   ansible_ssh_private_key_file:  # Default is to get the private key generated
+#                                  # by vagrant
 #   ansible_ssh_common_args:
 #   ansible_scp_extra_args:
 #   ansible_ssh_extra_args:
@@ -58,3 +66,28 @@ vagrant_provisioner_boxes: []
 #   ansible_shell_executable: /bin/sh }
 
 vagrant_provisioner_vms: []
+
+# General vm options to apply if no other ones are specified in the specific
+# container dictionary of the vagrant_provisioner_vms variable.
+
+vagrant_provisioner_vm_state: present
+vagrant_provisioner_vm_driver: kvm
+vagrant_provisioner_vm_memory: 1024
+vagrant_provisioner_vm_cpus: 1
+vagrant_provisioner_vm_ansible_connection: ssh
+vagrant_provisioner_vm_ansible_port: 22
+vagrant_provisioner_vm_ansible_user: vagrant
+vagrant_provisioner_vm_ansible_ssh_pass:
+vagrant_provisioner_vm_ansible_ssh_common_args:
+vagrant_provisioner_vm_ansible_scp_extra_args:
+vagrant_provisioner_vm_ansible_ssh_extra_args:
+vagrant_provisioner_vm_ansible_ssh_pipelining: false
+vagrant_provisioner_vm_ansible_ssh_executable: ssh
+vagrant_provisioner_vm_ansible_become: false
+vagrant_provisioner_vm_ansible_become_method: sudo
+vagrant_provisioner_vm_ansible_become_user: root
+vagrant_provisioner_vm_ansible_become_pass:
+vagrant_provisioner_vm_ansible_become_exe: sudo
+vagrant_provisioner_vm_ansible_become_flags: "-H -S -n"
+vagrant_provisioner_vm_ansible_python_interpreter: /usr/bin/python
+vagrant_provisioner_vm_ansible_shell_executable: /bin/sh

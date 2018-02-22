@@ -65,7 +65,9 @@
         - name: "associate auth/group info to vagrant vm {{ vm.hostname }}"
           add_host:
             name: "{{ vm.hostname }}"
-            groups: "{{ vagrant_provisioner_vms_group }}"
+            groups: >-
+              {{ vm.groups | default([])
+                + vagrant_provisioner_vms_groups }}
             state: present
             ansible_connection: >-
               {{ vm.ansible_connection
@@ -145,6 +147,14 @@
             name: >-
               {{ vagrant_provisioner_get_public_key_result.stdout }}
             state: absent
+
+        - name: save inventory file with the deployed vms
+          template:
+            src: inventory.j2
+            dest: "{{ vagrant_provisioner_inventory }}"
+            backup: no
+          when: >
+            vagrant_provisioner_inventory | default("") | length > 0
       when: vm.state | default(vagrant_provisioner_vm_state) == 'present'
 
     - block:

@@ -1,5 +1,5 @@
 ---
-# Tasks for tesing role
+# Tasks for testing role
 
 - name: load vagrant presets and configure testing environment
   hosts: localhost
@@ -31,9 +31,9 @@
       changed_when: false
       register: shell_into_vm_result
 
-- name: test boxes and vms cleanup
-  hosts: localhost
-  roles:
-    - role: amtega.vagrant_provisioner
-      vagrant_provisioner_box_state: absent
-      vagrant_provisioner_vm_state: absent
+# - name: test boxes and vms cleanup
+#   hosts: localhost
+#   roles:
+#     - role: amtega.vagrant_provisioner
+#       vagrant_provisioner_box_state: absent
+#       vagrant_provisioner_vm_state: absent

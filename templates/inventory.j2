@@ -1,0 +1,12 @@
+{{ ansible_managed | comment }}
+{% for vm in vagrant_provisioner_vms %}
+{% if vm.state | default(docker_provisioner_container_state) == "present" %}
+{% set vars = hostvars[vm.hostname] %}
+{% for group in vm.groups | default(vagrant_provisioner_container_groups) %}
+
+[{{ group }}]
+{{ vm.hostname }} ansible_host={{ vars['ansible_host'] }} ansible_user={{ vars['ansible_user'] }} ansible_password={{ vars['ansible_password'] }} ansible_connection={{ vars['ansible_connection'] }}
+
+{% endfor %}
+{% endif %}
+{% endfor %}

@@ -11,6 +11,7 @@
         vagrant_provisioner_boxes: "{{ vagrant_presets_boxes }}"
         vagrant_provisioner_vms: >-
           {{ vagrant_presets_vms | vagrant_presets_randomize_names }}
+        vagrant_provisioner_inventory: "./test_inventory"
 
 - name: test boxes and vms provisioning
   hosts: localhost
@@ -35,5 +36,5 @@
   hosts: localhost
   roles:
     - role: amtega.vagrant_provisioner
-      vagrant_provisioner_box_state: absent
+      # vagrant_provisioner_box_state: absent
       vagrant_provisioner_vm_state: absent

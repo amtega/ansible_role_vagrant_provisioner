@@ -148,15 +148,6 @@
               {{ vagrant_provisioner_get_public_key_result.stdout }}
             state: absent
 
-        - name: save inventory file with the deployed vms
-          template:
-            src: inventory.j2
-            dest: "{{ vagrant_provisioner_inventory }}"
-            backup: no
-          when: >
-            vagrant_provisioner_inventory | default("") | length > 0
-      when: vm.state | default(vagrant_provisioner_vm_state) == 'started'
-
     - block:
         - name: "check vagrant vm directory status for vm {{ vm.hostname }}"
           stat:

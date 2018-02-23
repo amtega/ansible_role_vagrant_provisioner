@@ -1,13 +1,15 @@
 ---
 # Role default lower priority variables
 
-# Directory to store vagrant files
+# List of dicts with vagrant plugins to setup. The dicts must have the
+# following format:
+#
+# { name: "vagrant-libvirt"        # Name of the plugin
+#   state: present                 # present or absent }
 
-vagrant_provisioner_vms_directory: "~/.vagrant"
-
-# Ansible groups to put vagrant vms in
-
-vagrant_provisioner_vms_groups: [ 'vagrant_provisioner_vms' ]
+vagrant_engine_plugins:
+  - name: vagrant-libvirt
+    state: present
 
 # List of dicts with the boxes to provisione. The dicts must have the following
 # format:
@@ -32,9 +34,9 @@ vagrant_provisioner_box_state: "present"
 #   box: "centos_7"          # What box is the vm derived from
 #   state: started           # started or absent (to add remove the vm)
 #   hostname: "centos-7"     # DNS name of the vm#
-#   subdirectory: "centos_7" # Subdirectory inside
-#                            # vagrant_provisioner_vms_directory
-#                            # (if not provided default is name)
+#   directory: "~/centos-7"  # Directory to store virtual vm
+                             # Default is a subdirectory with hostname inside
+                             # vagrant_provisioner_vms_directory
 #   driver: kvm              # Virtual machine driver
 #   memory: 1024             # Virtual machine memory
 #   cpus: 1                  # Virtual machine number of CPUs
@@ -91,6 +93,14 @@ vagrant_provisioner_vm_ansible_become_exe: sudo
 vagrant_provisioner_vm_ansible_become_flags: "-H -S -n"
 vagrant_provisioner_vm_ansible_python_interpreter: /usr/bin/python
 vagrant_provisioner_vm_ansible_shell_executable: /bin/sh
+
+# Default base directory to store vagrant vms
+
+vagrant_provisioner_vms_directory: "~/.vagrant/virtual_machines"
+
+# Ansible groups to put vagrant vms in
+
+vagrant_provisioner_vms_groups: [ 'vagrant_provisioner_vms' ]
 
 # If defined, this variable tells to role to create a minimal inventory file
 # containing the deployed vms. Be warned that auth info is contained in

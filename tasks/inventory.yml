@@ -6,8 +6,7 @@
     src: inventory.j2
     dest: "{{ vagrant_provisioner_inventory }}"
     backup: no
-  when: >
-    vagrant_provisioner_inventory | default("") | length > 0
+  when: vagrant_provisioner_inventory | default("") | length > 0
   vars:
     inventory_vars:
       - ansible_connection
@@ -28,4 +27,3 @@
       - ansible_become_flags
       - ansible_python_interpreter
       - ansible_shell_executable
-  when: vagrant_provisioner_inventory | default('') | length > 0

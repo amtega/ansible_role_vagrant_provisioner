@@ -65,8 +65,10 @@
         - name: "associate auth/group info to vagrant vm {{ vm.hostname }}"
           add_host:
             name: "{{ vm.hostname }}"
-            groups: "{{ vagrant_provisioner_vms_group }}"
-            state: present
+            groups: >-
+              {{ vm.groups | default([])
+                + vagrant_provisioner_vms_groups }}
+            state: started
             ansible_connection: >-
               {{ vm.ansible_connection
                  | default(vagrant_provisioner_vm_ansible_connection) }}
@@ -145,7 +147,6 @@
             name: >-
               {{ vagrant_provisioner_get_public_key_result.stdout }}
             state: absent
-      when: vm.state | default(vagrant_provisioner_vm_state) == 'present'
 
     - block:
         - name: "check vagrant vm directory status for vm {{ vm.hostname }}"

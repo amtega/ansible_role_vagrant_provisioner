@@ -5,9 +5,9 @@
 
 vagrant_provisioner_vms_directory: "~/.vagrant"
 
-# Ansible group to put vagrant vms in
+# Ansible groups to put vagrant vms in
 
-vagrant_provisioner_vms_group: vagrant_provisioner_vms
+vagrant_provisioner_vms_groups: [ 'vagrant_provisioner_vms' ]
 
 # List of dicts with the boxes to provisione. The dicts must have the following
 # format:
@@ -30,7 +30,7 @@ vagrant_provisioner_box_state: "present"
 #
 # { name: "centos_7"         # Display name
 #   box: "centos_7"          # What box is the vm derived from
-#   state: present           # present or absent (to add remove the vm)
+#   state: started           # started or absent (to add remove the vm)
 #   hostname: "centos-7"     # DNS name of the vm#
 #   subdirectory: "centos_7" # Subdirectory inside
 #                            # vagrant_provisioner_vms_directory
@@ -70,7 +70,7 @@ vagrant_provisioner_vms: []
 # General vm options to apply if no other ones are specified in the specific
 # container dictionary of the vagrant_provisioner_vms variable.
 
-vagrant_provisioner_vm_state: present
+vagrant_provisioner_vm_state: started
 vagrant_provisioner_vm_driver: kvm
 vagrant_provisioner_vm_memory: 1024
 vagrant_provisioner_vm_cpus: 1
@@ -91,3 +91,9 @@ vagrant_provisioner_vm_ansible_become_exe: sudo
 vagrant_provisioner_vm_ansible_become_flags: "-H -S -n"
 vagrant_provisioner_vm_ansible_python_interpreter: /usr/bin/python
 vagrant_provisioner_vm_ansible_shell_executable: /bin/sh
+
+# If defined, this variable tells to role to create a minimal inventory file
+# containing the deployed vms. Be warned that auth info is contained in
+# clear text in this file.
+
+#vagrant_provisioner_inventory:

@@ -1,5 +1,5 @@
 ---
-# Tasks for tesing role
+# Tasks for testing role
 
 - name: load vagrant presets and configure testing environment
   hosts: localhost
@@ -11,13 +11,14 @@
         vagrant_provisioner_boxes: "{{ vagrant_presets_boxes }}"
         vagrant_provisioner_vms: >-
           {{ vagrant_presets_vms | vagrant_presets_randomize_names }}
+        vagrant_provisioner_inventory: "./test_inventory"
 
 - name: test boxes and vms provisioning
   hosts: localhost
   roles:
     - role: amtega.vagrant_provisioner
       vagrant_provisioner_box_state: present
-      vagrant_provisioner_vm_state: present
+      vagrant_provisioner_vm_state: started
 
 - name: ping provisioned vms
   gather_facts: false
@@ -35,60 +36,5 @@
   hosts: localhost
   roles:
     - role: amtega.vagrant_provisioner
-      vagrant_provisioner_box_state: absent
+      # vagrant_provisioner_box_state: absent
       vagrant_provisioner_vm_state: absent
-
-
-# - name: test the role vagrant_engine provision
-#   hosts: localhost
-#   roles:
-#     - role: amtega.vagrant_provisioner
-#       vagrant_provisioner_boxes:
-#         - name: centos_7
-#           address: centos/7
-#           state: present
-#           provider: libvirt
-#         - name: fedora_27
-#           address: fedora/27-cloud-base
-#           state: present
-#           provider: libvirt
-#       vagrant_provisioner_vms:
-#         - name: centos_7
-#           state: present
-#           hostname: centos-7
-#           box: centos_7
-#           driver: kvm
-#           memory: 1024
-#           cpus: 1
-#         - name: fedora_27
-#           state: present
-#           hostname: fedora-27
-#           ansible_python_interpreter: /usr/bin/python3
-#           box: fedora_27
-#           driver: kvm
-#           memory: 1024
-#           cpus: 1#
-
-#
-# - name: test the role vagrant_provisioner cleanup
-#   hosts: localhost
-#   roles:
-#     - role: amtega.vagrant_provisioner
-#       vagrant_provisioner_vms:
-#         - name: "centos_7"
-#           state: absent
-#           hostname: "centos-7"
-#         - name: "fedora_27"
-#           state: absent
-#           hostname: "fedora-27"
-#
-#     - role: amtega.vagrant_provisioner
-#       vagrant_provisioner_boxes:
-#         - name: centos_7
-#           address: centos/7
-#           state: absent
-#           provider: libvirt
-#         - name: fedora_27
-#           address: fedora/27-cloud-base
-#           state: absent
-#           provider: libvirt

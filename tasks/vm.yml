@@ -62,11 +62,13 @@
             chdir: "{{ vm_path }}"
           changed_when: false
 
-        - name: "associate auth/group info to vagrant vm {{ vm.hostname }}"
+        - name: "associate inventory info to vagrant vm {{ vm.hostname }}"
           add_host:
             name: "{{ vm.hostname }}"
-            groups: "{{ vagrant_provisioner_vms_group }}"
-            state: present
+            groups: >-
+              {{ vm.groups | default([])
+                + vagrant_provisioner_vms_groups }}
+            state: started
             ansible_connection: >-
               {{ vm.ansible_connection
                  | default(vagrant_provisioner_vm_ansible_connection) }}
@@ -131,6 +133,8 @@
             ansible_shell_executable: >-
               {{ vm.ansible_shell_executable
                  | default(vagrant_provisioner_vm_ansible_shell_executable) }}
+            vagrant_provisioner_vm_directory: >-
+              {{ vm_path }}
           changed_when: false
 
         - name: "gather vagrant ssh public key form vm {{ vm.hostname }}"
@@ -145,7 +149,6 @@
             name: >-
               {{ vagrant_provisioner_get_public_key_result.stdout }}
             state: absent
-      when: vm.state | default(vagrant_provisioner_vm_state) == 'present'
 
     - block:
         - name: "check vagrant vm directory status for vm {{ vm.hostname }}"
@@ -178,6 +181,8 @@
       when: vm.state | default(vagrant_provisioner_vm_state) == 'absent'
   vars:
     vm_path: >-
-      {{ vagrant_provisioner_vms_directory | expanduser
-         + "/virtual_machines/"
-         + vm.subdirectory | default(vm.name) }}
+      {{ vm.directory
+         | default(vagrant_provisioner_vms_directory
+                   | expanduser
+                   + "/"
+                   + vm.name) }}

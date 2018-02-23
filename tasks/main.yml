@@ -1,6 +1,13 @@
 ---
 # Role tasks
 
+- name: setup vagrant plugins
+  include_tasks: plugins.yml
+  when: vagrant_provisioner_boxes | length > 0
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::plugins
+
 - name: setup vagrant boxes
   include_tasks: boxes.yml
   when: vagrant_provisioner_boxes | length > 0
@@ -8,13 +15,17 @@
     - role::vagrant_provisioner
     - role::vagrant_provisioner::boxes
 
-- name: setup vagrant virtual machines
-  include_tasks: vm.yml
-  when: vagrant_provisioner_vms | length > 0
-  with_items: "{{ vagrant_provisioner_vms }}"
-  loop_control:
-    label: "{{ vm.hostname }}"
-    loop_var: vm
+- block:
+    - name: setup vagrant virtual machines
+      include_tasks: vm.yml
+      when: vagrant_provisioner_vms | length > 0
+      with_items: "{{ vagrant_provisioner_vms }}"
+      loop_control:
+        label: "{{ vm.hostname }}"
+        loop_var: vm
+
+    - name: save inventory file with the provisioned vms
+      include_tasks: inventory.yml
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::vms

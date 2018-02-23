@@ -1,0 +1,29 @@
+---
+# Save inventory file with the provisioned vms
+
+- name: save inventory file with the deployed vms
+  template:
+    src: inventory.j2
+    dest: "{{ vagrant_provisioner_inventory }}"
+    backup: no
+  when: vagrant_provisioner_inventory | default("") | length > 0
+  vars:
+    inventory_vars:
+      - ansible_connection
+      - ansible_port
+      - ansible_user
+      - ansible_ssh_pass
+      - ansible_ssh_private_key_file
+      - ansible_ssh_common_args
+      - ansible_scp_extra_args
+      - ansible_ssh_extra_args
+      - ansible_ssh_pipelining
+      - ansible_ssh_executable
+      - ansible_become
+      - ansible_become_method
+      - ansible_become_user
+      - ansible_become_pass
+      - ansible_become_exe
+      - ansible_become_flags
+      - ansible_python_interpreter
+      - ansible_shell_executable

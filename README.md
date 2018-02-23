@@ -34,10 +34,9 @@ This is an example playbook:
     vagrant_provisioner_vms:
       - name: "fedora_27"        
         box: "fedora_27"          
-        state: present        
+        state: started        
         hostname: "fedora-27-cloud-base"        
-        ansible_python_interpreter: /usr/bin/python3
-        subdirectory: "fedora_27"        
+        ansible_python_interpreter: /usr/bin/python3        
         driver: kvm
         memory: 1024
         cpus: 1

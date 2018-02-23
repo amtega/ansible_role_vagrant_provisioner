@@ -1,0 +1,34 @@
+---
+# Setup vagrant plugins
+
+- name: install vagrant plugins
+  shell: "vagrant plugin install {{ item.name }}"
+  register: vagrant_provisioner_plugin_install_result
+  failed_when: >-
+    not vagrant_provisioner_plugin_install_result.stdout
+        | search("Installed the plugin .*" + item.name)
+  when:
+    - item.state == "present"
+    - >-
+        lookup("pipe",
+               "vagrant plugin list | grep " + item.name + " || true")
+        | length == 0
+  with_items: "{{ vagrant_engine_plugins }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: uninstall vagrant plugins
+  shell: "vagrant plugin uninstall {{ item }}"
+  register: vagrant_provisioner_plugin_install_result
+  failed_when: >-
+    not vagrant_provisioner_plugin_install_result.stdout
+        | search("Successfully uninstalled .*" + item.name)
+  when:
+    - item.state == "absent"
+    - >-
+        lookup("pipe",
+               "vagrant plugin list | grep " + item.name + " || true")
+        | length > 0
+  with_items: "{{ vagrant_engine_plugins }}"
+  loop_control:
+    label: "{{ item.name }}"

@@ -36,5 +36,5 @@
   hosts: localhost
   roles:
     - role: amtega.vagrant_provisioner
-      # vagrant_provisioner_box_state: absent
+      vagrant_provisioner_box_state: absent
       vagrant_provisioner_vm_state: absent

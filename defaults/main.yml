@@ -7,7 +7,7 @@
 # { name: "vagrant-libvirt"        # Name of the plugin
 #   state: present                 # present or absent }
 
-vagrant_engine_plugins:
+vagrant_provisioner_plugins:
   - name: vagrant-libvirt
     state: present
 

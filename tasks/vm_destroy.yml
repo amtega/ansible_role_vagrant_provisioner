@@ -1,0 +1,30 @@
+---
+# Destroy vagrant vm
+
+- name: "check vagrant vm directory status for vm {{ vm.name }}"
+  stat:
+    path: "{{ vm_path }}"
+  register: vagrant_provisioner_check_path_result
+
+- name: "vagrant destroy vm {{ vm.hostname }}"
+  shell: "vagrant destroy --force --machine-readable"
+  args:
+    removes: "Vagrantfile"
+    chdir: "{{ vm_path }}"
+  register: vagrant_provisioner_destroy_result
+  when: >-
+    vagrant_provisioner_check_path_result.stat.isdir is defined
+    and vagrant_provisioner_check_path_result.stat.isdir
+  changed_when:
+    stdout | search("action,destroy,start")
+    and stdout | search("action,destroy,end")
+    and not stdout | search("Domain is not created")
+  failed_when: false
+  vars:
+    stdout: vagrant_provisioner_destroy_result.stdout
+
+- name: "remove vagrant vm directory for vm {{  vm.name }}"
+  file:
+    path: "{{ vm_path }}"
+    state: absent
+    force: yes

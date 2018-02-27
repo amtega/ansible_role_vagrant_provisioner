@@ -2,33 +2,35 @@
 # Setup vagrant plugins
 
 - name: install vagrant plugins
-  shell: "vagrant plugin install {{ item.name }}"
+  shell: "vagrant plugin install {{ plugin.name }}"
   register: vagrant_provisioner_plugin_install_result
   failed_when: >-
     not vagrant_provisioner_plugin_install_result.stdout
-        | search("Installed the plugin .*" + item.name)
+        | search("Installed the plugin .*" + plugin.name)
   when:
-    - item.state == "present"
+    - plugin.state == "present"
     - >-
         lookup("pipe",
-               "vagrant plugin list | grep " + item.name + " || true")
+               "vagrant plugin list | grep " + plugin.name + " || true")
         | length == 0
-  with_items: "{{ vagrant_engine_plugins }}"
+  with_items: "{{ vagrant_provisioner_plugins }}"
   loop_control:
-    label: "{{ item.name }}"
+    label: "{{ plugin.name }}"
+    loop_var: plugin
 
 - name: uninstall vagrant plugins
-  shell: "vagrant plugin uninstall {{ item }}"
+  shell: "vagrant plugin uninstall {{ plugin.name }}"
   register: vagrant_provisioner_plugin_install_result
   failed_when: >-
     not vagrant_provisioner_plugin_install_result.stdout
-        | search("Successfully uninstalled .*" + item.name)
+        | search("Successfully uninstalled .*" + plugin.name)
   when:
-    - item.state == "absent"
+    - plugin.state == "absent"
     - >-
         lookup("pipe",
-               "vagrant plugin list | grep " + item.name + " || true")
+               "vagrant plugin list | grep " + plugin.name + " || true")
         | length > 0
-  with_items: "{{ vagrant_engine_plugins }}"
+  with_items: "{{ vagrant_provisioner_plugins }}"
   loop_control:
-    label: "{{ item.name }}"
+    label: "{{ plugin.name }}"
+    loop_var: plugin

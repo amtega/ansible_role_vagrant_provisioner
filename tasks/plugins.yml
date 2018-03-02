@@ -1,36 +1,34 @@
 ---
 # Setup vagrant plugins
 
-- name: install vagrant plugins
-  shell: "vagrant plugin install {{ plugin.name }}"
-  register: vagrant_provisioner_plugin_install_result
+- name: setup vagrant plugins
+  shell: >-
+    vagrant plugin
+    {{ (plugin.state == "present") | ternary("install", "uninstall") }}
+    {{ plugin.name }}
+  register: vagrant_provisioner_plugin_setup_result
   failed_when: >-
-    not vagrant_provisioner_plugin_install_result.stdout
-        | search("Installed the plugin .*" + plugin.name)
-  when:
-    - plugin.state == "present"
     - >-
-        lookup("pipe",
+      plugin.state == "present"
+      and not vagrant_provisioner_plugin_setup_result.stdout
+              | search("Installed the plugin .*" + plugin.name)
+    - >-
+      plugin.state == "absent"
+      and not vagrant_provisioner_plugin_setup_result.stdout
+              | search("Successfully uninstalled .*" + plugin.name)
+  when: >-
+    (plugin.state == "present"
+     and lookup("pipe",
                "vagrant plugin list | grep " + plugin.name + " || true")
-        | length == 0
+        | length == 0)
+    or (plugin.state == "absent"
+        and lookup("pipe",
+                   "vagrant plugin list | grep " + plugin.name + " || true")
+            | length > 0)
   with_items: "{{ vagrant_provisioner_plugins }}"
   loop_control:
     label: "{{ plugin.name }}"
     loop_var: plugin
-
-- name: uninstall vagrant plugins
-  shell: "vagrant plugin uninstall {{ plugin.name }}"
-  register: vagrant_provisioner_plugin_install_result
-  failed_when: >-
-    not vagrant_provisioner_plugin_install_result.stdout
-        | search("Successfully uninstalled .*" + plugin.name)
-  when:
-    - plugin.state == "absent"
-    - >-
-        lookup("pipe",
-               "vagrant plugin list | grep " + plugin.name + " || true")
-        | length > 0
-  with_items: "{{ vagrant_provisioner_plugins }}"
-  loop_control:
-    label: "{{ plugin.name }}"
-    loop_var: plugin
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::plugins

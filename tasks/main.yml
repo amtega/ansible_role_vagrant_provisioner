@@ -15,19 +15,18 @@
     - role::vagrant_provisioner
     - role::vagrant_provisioner::boxes
 
-- block:
-    - name: setup vagrant virtual machines
-      include_tasks: vm.yml
-      with_items: "{{ vagrant_provisioner_vms }}"
-      loop_control:
-        label: "{{ vm.hostname }}"
-        loop_var: vm
+- name: setup vagrant virtual machines
+  include_tasks: vms.yml
 
-    - name: save inventory file with the provisioned vms
-      include_tasks: inventory.yml
-      when:
-        - vagrant_provisioner_up_result is defined
-        - vagrant_provisioner_up_result | changed
+- name: save inventory file with the provisioned vms
+  include_tasks: inventory.yml
+  when:
+    - vagrant_provisioner_up_result is defined
+    - >-
+      vagrant_provisioner_up_result.results
+      | select("changed")
+      | list
+      | length > 0
   tags:
     - role::vagrant_provisioner
-    - role::vagrant_provisioner::vms
+    - role::vagrant_provisioner::plugins

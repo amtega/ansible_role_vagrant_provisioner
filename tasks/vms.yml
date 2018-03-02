@@ -230,7 +230,7 @@
         path: "{{ indexed_vm_path }}"
         state: absent
         force: yes
-      when: vagrant_provisioner_destroy_result.results[vm.0] | changed
+      when: vagrant_provisioner_setup_result.results[vm.0] | changed
       with_indexed_items: "{{ vms_state_absent | list }}"
       loop_control:
         label: "{{ vm.1.hostname }}"

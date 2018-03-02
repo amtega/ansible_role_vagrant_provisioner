@@ -22,7 +22,7 @@
         label: "{{ vm.hostname }}"
         loop_var: vm
 
-    - name: create Vagrantfile for virtal machines
+    - name: create Vagrantfile for virtual machines
       template:
         src: Vagrantfile.j2
         dest: "{{ vm_path }}/Vagrantfile"

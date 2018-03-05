@@ -2,10 +2,10 @@
 {% for vm in vagrant_provisioner_vms %}
 {% if vm.state | default(vagrant_provisioner_vm_state) == "started" %}
 {% set vars = hostvars[vm.hostname] %}
-{% for group in vm.groups | default(vagrant_provisioner_vms_groups) %}
+{% for group in vm.groups | default(vagrant_provisioner_vm_groups) %}
 
 [{{ group }}]
-{{ vm.hostname }} {% for v in inventory_vars -%}{%- if vars[v] | default('') | string | length > 0 %}{{ v }}={{ vars[v] }} {% endif -%}{%- endfor -%}
+{{ vm.hostname }} {% for v in inventory_vars -%}{%- if vars[v] | default('') | string | length > 0 %}{{ v }}="{{ vars[v] }}" {% endif -%}{%- endfor -%}
 {% endfor %}
 {% endif %}
 {% endfor %}

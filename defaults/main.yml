@@ -97,7 +97,7 @@ vagrant_provisioner_vm_ansible_become_user: root
 vagrant_provisioner_vm_ansible_become_pass: vagrant
 vagrant_provisioner_vm_ansible_become_exe:
 vagrant_provisioner_vm_ansible_become_flags:
-vagrant_provisioner_vm_ansible_python_interpreter:
+vagrant_provisioner_vm_ansible_python_interpreter: /usr/bin/python
 vagrant_provisioner_vm_ansible_shell_executable: /bin/sh
 
 # Default base directory to store vagrant vms

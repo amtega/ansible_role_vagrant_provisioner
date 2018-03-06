@@ -10,6 +10,7 @@
   vars:
     inventory_vars:
       - ansible_connection
+      - ansible_host
       - ansible_port
       - ansible_user
       - ansible_ssh_pass

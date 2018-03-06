@@ -11,4 +11,15 @@ Vagrant.configure(2) do |config|
   	provider.memory = {{ vm.memory | default(vagrant_provisioner_vm_memory) }}
   	provider.cpus = {{ vm.cpus | default(vagrant_provisioner_vm_cpus) }}
   end
+{% if vm.playbook | default(vagrant_provisioner_vm_playbook) | length > 0 %}
+  config.vm.provision "ansible" do |ansible|
+
+    ansible.playbook = "{{ vm.playbook | default(vagrant_provisioner_vm_playbook) }}"
+{% if vm.ansible_python_interpreter | default(vagrant_provisioner_vm_ansible_python_interpreter) | length > 0 %}
+    ansible.extra_vars = {
+      ansible_python_interpreter: "{{ vm.ansible_python_interpreter | default(vagrant_provisioner_vm_ansible_python_interpreter) }}"
+    }
+{% endif %}
+  end
+{% endif %}
 end

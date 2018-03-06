@@ -22,7 +22,7 @@
         label: "{{ vm.hostname }}"
         loop_var: vm
 
-    - name: create Vagrantfile for virtual machines
+    - name: create vagrant config file for virtual machines
       template:
         src: Vagrantfile.j2
         dest: "{{ vm_path }}/Vagrantfile"
@@ -109,7 +109,6 @@
         vagrant_status: "{{ vagrant_provisioner_check_status_result.results }}"
         vagrant_paths: "{{ vagrant_provisioner_check_path_result.results }}"
 
-
     - name: get vagrant virtual machines ssh config
       shell: "vagrant ssh-config"
       register: vagrant_provisioner_ssh_config_result
@@ -125,17 +124,17 @@
       add_host:
         name: "{{ vm.1.hostname }}"
         groups: >-
-          {{ vm.1.groups | default([]) + vagrant_provisioner_vms_groups }}
+          {{ vm.1.groups | default([]) + vagrant_provisioner_vm_groups }}
         state: started
         ansible_connection: >-
           {{ vm.1.ansible_connection
              | default(vagrant_provisioner_vm_ansible_connection) }}
         ansible_host: >-
-          {{ ssh_configs[vm.0].stdout_lines[1][11:] }}
-          {{ ssh_configs[vm.0].stdout
-             | regex_replace(
-                 '^(?sm).*\n *HostName *(?P<hostname>[^\n]+)\n.*$',
-                 '\1') }}
+          {{ ssh_configs[vm.0].stdout_lines
+             | select("search", "HostName")
+             | first
+             | regex_replace(".*HostName (.*)", "\1")
+             | trim }}
         ansible_port: >-
           {{ vm.1.ansible_port
              | default(vagrant_provisioner_vm_ansible_port) }}
@@ -238,8 +237,8 @@
   vars:
     vms_state_undefined: >-
       {{ vagrant_provisioner_vms
-                   | selectattr("state", "undefined")
-                   | list }}
+         | selectattr("state", "undefined")
+         | list }}
 
     vms_state_started: >-
       {{ vagrant_provisioner_vms

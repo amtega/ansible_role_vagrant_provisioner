@@ -35,11 +35,15 @@ vagrant_provisioner_box_state: "present"
 #   state: started           # started or absent (to add remove the vm)
 #   hostname: "centos-7"     # DNS name of the vm#
 #   directory: "~/centos-7"  # Directory to store virtual vm
-                             # Default is a subdirectory with hostname inside
-                             # vagrant_provisioner_vms_directory
+#                            # Default is a subdirectory with hostname inside
+#                            # vagrant_provisioner_vms_directory
 #   driver: kvm              # Virtual machine driver
 #   memory: 1024             # Virtual machine memory
 #   cpus: 1                  # Virtual machine number of CPUs
+#   groups:                  # Ansible groups to put vms in
+#    - vagrant_provisioner_vms
+#   playbook: "playbook.yml" # Playbook to run after vm provisioning
+#
 #
 #   # The vm also supports the following optional ansible behavioral inventory
 #   # parameters. The defaults values are indicated below.
@@ -76,10 +80,12 @@ vagrant_provisioner_vm_state: started
 vagrant_provisioner_vm_driver: kvm
 vagrant_provisioner_vm_memory: 1024
 vagrant_provisioner_vm_cpus: 1
+vagrant_provisioner_vm_groups: [ 'vagrant_provisioner_vms' ]
+vagrant_provisioner_vm_playbook: ""
 vagrant_provisioner_vm_ansible_connection: ssh
 vagrant_provisioner_vm_ansible_port: 22
 vagrant_provisioner_vm_ansible_user: vagrant
-vagrant_provisioner_vm_ansible_ssh_pass:
+vagrant_provisioner_vm_ansible_ssh_pass: vagrant
 vagrant_provisioner_vm_ansible_ssh_common_args:
 vagrant_provisioner_vm_ansible_scp_extra_args:
 vagrant_provisioner_vm_ansible_ssh_extra_args:
@@ -88,19 +94,15 @@ vagrant_provisioner_vm_ansible_ssh_executable: ssh
 vagrant_provisioner_vm_ansible_become: false
 vagrant_provisioner_vm_ansible_become_method: sudo
 vagrant_provisioner_vm_ansible_become_user: root
-vagrant_provisioner_vm_ansible_become_pass:
-vagrant_provisioner_vm_ansible_become_exe: sudo
-vagrant_provisioner_vm_ansible_become_flags: "-H -S -n"
-vagrant_provisioner_vm_ansible_python_interpreter: /usr/bin/python
+vagrant_provisioner_vm_ansible_become_pass: vagrant
+vagrant_provisioner_vm_ansible_become_exe:
+vagrant_provisioner_vm_ansible_become_flags:
+vagrant_provisioner_vm_ansible_python_interpreter:
 vagrant_provisioner_vm_ansible_shell_executable: /bin/sh
 
 # Default base directory to store vagrant vms
 
 vagrant_provisioner_vms_directory: "~/.vagrant/virtual_machines"
-
-# Ansible groups to put vagrant vms in
-
-vagrant_provisioner_vms_groups: [ 'vagrant_provisioner_vms' ]
 
 # If defined, this variable tells to role to create a minimal inventory file
 # containing the deployed vms. Be warned that auth info is contained in

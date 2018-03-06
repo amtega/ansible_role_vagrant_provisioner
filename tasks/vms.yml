@@ -17,6 +17,7 @@
         state: directory
         force: yes
         recurse: yes
+        mode: 0700
       with_items: "{{ vms_state_started }}"
       loop_control:
         label: "{{ vm.hostname }}"
@@ -28,6 +29,7 @@
         dest: "{{ vm_path }}/Vagrantfile"
         force: yes
         backup: yes
+        mode: 0600
       register: vagrant_provisioner_create_vagrantfile_result
       with_items: "{{ vms_state_started }}"
       loop_control:
@@ -43,24 +45,6 @@
       with_items: "{{ vms_state_started }}"
       loop_control:
         label: "{{ vm.hostname }}"
-        loop_var: vm
-
-    - name: destroy previous virtual machines instances
-      shell: "vagrant destroy --machine-readable"
-      args:
-        chdir: "{{ indexed_vm_path }}"
-      register: vagrant_provisioner_destroy_result
-      when: >-
-        vagrant_provisioner_create_vagrantfile_result.results[vm.0] | changed
-        and ',state,not_created'
-            not in vagrant_provisioner_check_status_result.results[vm.0].stdout
-      changed_when: >-
-        'Domain is not created. Please run `vagrant up` first.'
-        not in vagrant_provisioner_destroy_result.results[vm.0].stdout
-      failed_when: false
-      with_indexed_items: "{{ vms_state_started }}"
-      loop_control:
-        label: "{{ vm.1.hostname }}"
         loop_var: vm
 
     - name: setup vagrant virtual machines

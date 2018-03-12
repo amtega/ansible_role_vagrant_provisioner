@@ -17,7 +17,8 @@ vagrant_provisioner_plugins:
 # { name: "centos_7"               # Display name
 #   address: "centos/7"            # Name in https://app.vagrantup.com
 #   provider: "libvirt"            # Only tested with libvirt and docker
-#   state: present                 # present or absent (to add remove the box)}
+#   state: present                 # present or absent (to add remove the box)
+#   max_provisioning_time: 300     # Maximum time to provisione }
 
 vagrant_provisioner_boxes: []
 
@@ -26,23 +27,25 @@ vagrant_provisioner_boxes: []
 
 vagrant_provisioner_box_provider: "libvirt"
 vagrant_provisioner_box_state: "present"
+vagrant_provisioner_box_max_provisioning_time: 300
 
 # List of dicts with the virtual machines (vms) to provision. The dicts must
 # have the following format:
 #
-# { name: "centos_7"         # Display name
-#   box: "centos_7"          # What box is the vm derived from
-#   state: started           # started or absent (to add remove the vm)
-#   hostname: "centos-7"     # DNS name of the vm#
-#   directory: "~/centos-7"  # Directory to store virtual vm
-#                            # Default is a subdirectory with hostname inside
-#                            # vagrant_provisioner_vms_directory
-#   driver: kvm              # Virtual machine driver
-#   memory: 1024             # Virtual machine memory
-#   cpus: 1                  # Virtual machine number of CPUs
-#   groups:                  # Ansible groups to put vms in
+# { name: "centos_7"            # Display name
+#   box: "centos_7"             # What box is the vm derived from
+#   state: started              # started or absent (to add remove the vm)
+#   hostname: "centos-7"        # DNS name of the vm#
+#   directory: "~/centos-7"     # Directory to store virtual vm
+#                               # Default is a subdirectory with hostname inside
+#                               # vagrant_provisioner_vms_directory
+#   driver: kvm                 # Virtual machine driver
+#   memory: 1024                # Virtual machine memory
+#   cpus: 1                     # Virtual machine number of CPUs
+#   groups:                     # Ansible groups to put vms in
 #    - vagrant_provisioner_vms
-#   playbook: "playbook.yml" # Playbook to run after vm provisioning
+#   playbook: "playbook.yml"    # Playbook to run after vm provisioning
+#   max_provisioning_time: 300  # Maximum time to provisione }
 #
 #
 #   # The vm also supports the following optional ansible behavioral inventory
@@ -99,6 +102,7 @@ vagrant_provisioner_vm_ansible_become_exe:
 vagrant_provisioner_vm_ansible_become_flags:
 vagrant_provisioner_vm_ansible_python_interpreter: /usr/bin/python
 vagrant_provisioner_vm_ansible_shell_executable: /bin/sh
+vagrant_provisioner_vm_max_provisioning_time: 300
 
 # Default base directory to store vagrant vms
 

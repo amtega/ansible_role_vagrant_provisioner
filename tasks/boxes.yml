@@ -1,42 +1,72 @@
 ---
 # Setup vagrant boxes
 
-- name: setup vagrant boxes
-  shell: >-
-    vagrant box
-    {{ vagrant_command }}
-    --provider
-    {{ box.provider | default(vagrant_provisioner_box_provider) }}
-    --machine-readable
-    "{{ box.address }}"
-  with_items: "{{ vagrant_provisioner_boxes }}"
-  register: result_vagrant_box_setup_result
-  failed_when:
-    - result_vagrant_box_setup_result.rc == 1
-    - >-
-      box.state | default(vagrant_provisioner_box_state) == "present"
-      and ",ui,error,The box you're attempting to add already exists."
-          not in result_vagrant_box_setup_result.stdout
-    - >-
-      box.state | default(vagrant_provisioner_box_state) == "absent"
-      and ",error-exit,Vagrant::Errors::BoxRemoveNotFound,"
-          not in result_vagrant_box_setup_result.stdout
-  changed_when: >-
-    result_vagrant_box_setup_result.rc == 0
-    and (box.state | default(vagrant_provisioner_box_state) == "present"
-         and result_vagrant_box_setup_result.stdout
-             | search("Successfully added box"))
-        or (box.state | default(vagrant_provisioner_box_state) == "absent"
-            and result_vagrant_box_setup_result.stdout
-                | search(",ui,info,From libvirt storage pool "+
-                         "you have to delete image manually"))
-  vars:
-    vagrant_command: >-
-      {{ (box.state | default(vagrant_provisioner_box_state) == "present")
-         | ternary("add", "remove --all --force") }}
-  loop_control:
-    label: "{{ box.name }}"
-    loop_var: box
+- block:
+    - name: launch vagrant asynchronous boxes provisioning
+      shell: >-
+        vagrant box
+        {{ vagrant_command }}
+        --provider
+        {{ box.provider | default(vagrant_provisioner_box_provider) }}
+        --machine-readable
+        "{{ box.address }}"
+      register: vagrant_provisioner_boxes_async_result
+      changed_when: false
+      with_items: "{{ vagrant_provisioner_boxes }}"
+      async: >-
+        {{ box.max_provisioning_time
+           | default(vagrant_provisioner_box_max_provisioning_time) }}
+      poll: 0
+      vars:
+        vagrant_command: >-
+          {{ (box.state | default(vagrant_provisioner_box_state) == "present")
+             | ternary("add", "remove --all --force") }}
+      loop_control:
+        label: >-
+          {{ box.name
+             + " "
+             + box.state | default(vagrant_provisioner_box_state) }}
+        loop_var: box
+
+    - name: check vagrant asynchronous boxes provisioning
+      async_status:
+        jid: "{{ async_item.ansible_job_id }}"
+      register: vagrant_provisioner_boxes_setup_result
+      failed_when:
+        - vagrant_provisioner_boxes_setup_result.rc | default(0) == 1
+        - >-
+          async_item.box.state
+          | default(vagrant_provisioner_box_state) == "present"
+          and ",ui,error,The box you're attempting to add already exists."
+              not in vagrant_provisioner_boxes_setup_result.stdout
+        - >-
+          async_item.box.state
+          | default(vagrant_provisioner_box_state) == "absent"
+          and ",error-exit,Vagrant::Errors::BoxRemoveNotFound,"
+              not in vagrant_provisioner_boxes_setup_result.stdout
+      changed_when: >-
+        vagrant_provisioner_boxes_setup_result.rc | default(1) == 0
+        and (async_item.box.state
+             | default(vagrant_provisioner_box_state) == "present"
+             and vagrant_provisioner_boxes_setup_result.stdout
+                 | search("Successfully added box"))
+            or (async_item.box.state
+                | default(vagrant_provisioner_box_state) == "absent"
+                and vagrant_provisioner_boxes_setup_result.stdout
+                    | search(",ui,info,From libvirt storage pool "+
+                             "you have to delete image manually"))
+      with_items: "{{ vagrant_provisioner_boxes_async_result.results }}"
+      loop_control:
+        label: >-
+          {{ async_item.box.name
+             + " "
+             + async_item.box.state | default(vagrant_provisioner_box_state) }}
+        loop_var: async_item
+      until: vagrant_provisioner_boxes_setup_result.finished
+      retries: >-
+        {{ async_item.max_provisioning_time
+           | default(vagrant_provisioner_box_max_provisioning_time) }}
+      delay: 1
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::boxes

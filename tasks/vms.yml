@@ -108,7 +108,7 @@
            | default(vagrant_provisioner_vm_state) == "started"
            and ',ui,error,'
                in vagrant_provisioner_vms_setup_result.stdout | default([])
-               or vagrant_provisioner_vms_setup_result.rc | default(0) == 1)
+               or vagrant_provisioner_vms_setup_result.rc | default(0) != 0)
           or 'error-exit'
              in vagrant_provisioner_vms_setup_result.stdout | default([])
       with_items: "{{ vagrant_provisioner_vms_async_result.results }}"

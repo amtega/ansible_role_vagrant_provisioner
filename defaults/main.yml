@@ -22,6 +22,12 @@ vagrant_provisioner_plugins:
 
 vagrant_provisioner_boxes: []
 
+# Time to wait (in seconds) between boxes provisioning start to avoid
+# overwhelming the machine launching too many asynchronous provisioning
+# processes at the same time
+
+vagrant_provisioner_boxes_interleave_time: 1
+
 # Box options to apply if no other ones are specified in the specific
 # image dictionary of the vagrant_provisioner_boxes variable.
 
@@ -107,6 +113,12 @@ vagrant_provisioner_vm_max_provisioning_time: 300
 # Default base directory to store vagrant vms
 
 vagrant_provisioner_vms_directory: "~/.vagrant/virtual_machines"
+
+# Time to wait (in seconds) between vms provisioning start to avoid
+# overwhelming the machine launching too many asynchronous provisioning
+# processes at the same time
+
+vagrant_provisioner_vms_interleave_time: 5
 
 # If defined, this variable tells to role to create a minimal inventory file
 # containing the deployed vms. Be warned that auth info is contained in

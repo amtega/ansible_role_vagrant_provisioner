@@ -2,7 +2,7 @@
 # Setup vagrant vms
 
 - block:
-    - name: check vagrant virtual machines directories
+    - name: read vagrant virtual machines directories
       stat:
         path: "{{ vm_path }}"
       register: vagrant_provisioner_check_path_result
@@ -36,7 +36,7 @@
         label: "{{ vm.hostname }}"
         loop_var: vm
 
-    - name: check vagrant virtual machines status
+    - name: get vagrant virtual machines status
       shell: "vagrant status --machine-readable"
       args:
         chdir: "{{ vm_path }}"
@@ -49,9 +49,10 @@
 
     - name: launch vagrant asynchronous virtual machines provisioning
       shell: >-
+        sleep {{ vagrant_provisioner_vms_interleave_time * vm.0 }}s ;
         vagrant --machine-readable
         {{ (vm.1.state | default(vagrant_provisioner_vm_state) == "started")
-           | ternary("up", "destroy --force") }}
+           | ternary("up", "destroy --force") }} | tee -a vagrant.log
       args:
         chdir: "{{ indexed_vm_path }}"
         removes: >-
@@ -80,10 +81,11 @@
         vagrant_status: "{{ vagrant_provisioner_check_status_result.results }}"
         vagrant_paths: "{{ vagrant_provisioner_check_path_result.results }}"
 
-    - name: check vagrant asynchronous virtual machines provisioning
+    - name: wait for vagrant asynchronous virtual machines provisioning
       async_status:
         jid: "{{ async_item.ansible_job_id }}"
       register: vagrant_provisioner_vms_setup_result
+      when: async_item.ansible_job_id | default(0) > 0
       changed_when:
         - vagrant_provisioner_vms_setup_result.rc | default(-1) == 0
         - >-
@@ -102,11 +104,13 @@
               and not vagrant_provisioner_vms_setup_result.stdout | default([])
                   | search("Domain is not created"))
       failed_when:
-          async_item.vm.1.state
-          | default(vagrant_provisioner_vm_state) == "started"
-          and ',ui,error,'
-              in vagrant_provisioner_vms_setup_result.stdout | default([])
-              or vagrant_provisioner_vms_setup_result.rc | default(0) == 1
+          (async_item.vm.1.state
+           | default(vagrant_provisioner_vm_state) == "started"
+           and ',ui,error,'
+               in vagrant_provisioner_vms_setup_result.stdout | default([])
+               or vagrant_provisioner_vms_setup_result.rc | default(0) == 1)
+          or 'error-exit'
+             in vagrant_provisioner_vms_setup_result.stdout | default([])
       with_items: "{{ vagrant_provisioner_vms_async_result.results }}"
       loop_control:
         label: >-

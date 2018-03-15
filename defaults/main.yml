@@ -16,7 +16,12 @@ vagrant_provisioner_plugins:
 #
 # { name: "centos_7"               # Display name
 #   address: "centos/7"            # Name in https://app.vagrantup.com
+#   version: ""                    # Version of the box to download. If not
+#                                  # specified will use latest
 #   provider: "libvirt"            # Only tested with libvirt and docker
+#   provider_options:              # Dict with the specific provider settings
+#     nested: "true"
+#     keymap: "en-us"
 #   state: present                 # present or absent (to add remove the box)
 #   max_provisioning_time: 300     # Maximum time to provisione }
 
@@ -31,7 +36,11 @@ vagrant_provisioner_boxes_interleave_time: 1
 # Box options to apply if no other ones are specified in the specific
 # image dictionary of the vagrant_provisioner_boxes variable.
 
+vagrant_provisioner_box_version: ""
 vagrant_provisioner_box_provider: "libvirt"
+vagrant_provisioner_box_provider_options:
+  nested: "true"
+  keymap: "en-us"
 vagrant_provisioner_box_state: "present"
 vagrant_provisioner_box_max_provisioning_time: 300
 
@@ -87,7 +96,7 @@ vagrant_provisioner_vms: []
 
 vagrant_provisioner_vm_state: started
 vagrant_provisioner_vm_driver: kvm
-vagrant_provisioner_vm_memory: 1024
+vagrant_provisioner_vm_memory: 512
 vagrant_provisioner_vm_cpus: 1
 vagrant_provisioner_vm_groups: [ 'vagrant_provisioner_vms' ]
 vagrant_provisioner_vm_playbook: ""

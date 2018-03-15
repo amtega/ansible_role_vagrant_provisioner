@@ -22,5 +22,4 @@ galaxy_info:
     - system
     - virtualization
 
-dependencies:
-  - amtega.vagrant_engine
+dependencies: []

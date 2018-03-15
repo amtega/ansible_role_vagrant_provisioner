@@ -11,6 +11,13 @@
         {{ box.1.provider | default(vagrant_provisioner_box_provider) }}
         --machine-readable
         "{{ box.1.address }}"
+        {{ (box.1.version
+            | default(vagrant_provisioner_box_version)
+            | length > 0)
+           | ternary('--box-version "'
+                     + box.1.version
+                       | default(vagrant_provisioner_box_version) + '"',
+                     "") }}
       register: vagrant_provisioner_boxes_async_result
       changed_when: false
       with_indexed_items: "{{ vagrant_provisioner_boxes }}"

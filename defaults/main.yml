@@ -23,7 +23,15 @@ vagrant_provisioner_plugins:
 #     nested: "true"
 #     keymap: "en-us"
 #   state: present                 # present or absent (to add remove the box)
-#   max_provisioning_time: 300     # Maximum time to provisione }
+#   max_provisioning_time: 300     # Maximum time to provisione
+#
+#   playbook: ""                   # Playbook to customize the image
+#                                  # If specified a new image will be generated
+#                                  # and be customized using the given playbook.
+#                                  # The temporary vm launched to customize the
+#                                  # image can be tunned using the attributes
+#                                  # detailed below for
+#                                  # vagrant_provisioner_vms }
 
 vagrant_provisioner_boxes: []
 

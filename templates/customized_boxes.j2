@@ -1,0 +1,12 @@
+{% for box in boxes %}
+- name:  "{{ "box_" + box.name + "_customization" }}"
+  box: "{{ box.name }}"
+{% if "hostname" not in box %}
+  hostname: "{{ ("box_" + box.name + "_customization") | regex_replace("_", "-") }}"
+{% endif %}
+{% for attribute in box  %}
+{% if attribute not in ['name', 'box'] %}
+  {{ attribute }}: "{{ box[attribute] }}"
+{% endif %}
+{% endfor %}
+{% endfor %}

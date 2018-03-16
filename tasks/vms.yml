@@ -2,6 +2,10 @@
 # Setup vagrant vms
 
 - block:
+    - name: refresh vagrant status
+      shell: vagrant global-status --prune
+      changed_when: false
+
     - name: read vagrant virtual machines directories
       stat:
         path: "{{ vm_path }}"

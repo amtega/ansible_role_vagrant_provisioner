@@ -2,6 +2,41 @@
 # Setup vagrant boxes
 
 - block:
+    - block:
+        - name: customize vagrant boxes
+          include_tasks: vms.yml
+          vars:
+            vagrant_provisioner_vm_state: "started"
+            vagrant_provisioner_vms: "{{ vagrant_provisioner_tmp_vms }}"
+
+        - name: package customize vagrant boxes
+          shell: >-
+            vagrant package --output {{ vm.1.name }}.box | tee -a vagrant.log
+          args:
+            chdir: "{{ vm_path }}"
+          register: vagrant_provisioner_package_boxes_result
+          with_indexed_items: "{{ vagrant_provisioner_tmp_vms }}"
+          vars:
+            vm_path: >-
+              {{ vm.1.directory
+                 | default(vagrant_provisioner_vms_directory | expanduser
+                           + "/"
+                           + vm.1.name) }}
+          loop_control:
+            loop_var: vm
+            label: "{{ vm.1.name }}"
+      vars:
+        boxes: >-
+          {{ vagrant_provisioner_boxes
+             | selectattr("playbook", "defined")
+             | list }}
+        vagrant_provisioner_tmp_vms: >-
+          {{ lookup('template', 'customized_boxes.j2') | from_yaml }}
+
+    - debug: var=vagrant_provisioner_package_boxes_result
+
+    - fail:
+
     - name: launch vagrant asynchronous boxes provisioning
       shell: >-
         sleep {{ vagrant_provisioner_boxes_interleave_time * box.0 }}s ;
@@ -76,6 +111,9 @@
         {{ async_item.max_provisioning_time
            | default(vagrant_provisioner_box_max_provisioning_time) }}
       delay: "{{ vagrant_provisioner_boxes_interleave_time }}"
+
+
+
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::boxes

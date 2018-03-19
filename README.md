@@ -38,7 +38,6 @@ This is an example playbook:
         state: started        
         hostname: "fedora-27-cloud-base"        
         ansible_python_interpreter: /usr/bin/python3        
-        driver: kvm
         memory: 1024
         cpus: 1
 

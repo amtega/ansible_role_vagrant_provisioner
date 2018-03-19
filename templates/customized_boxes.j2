@@ -1,4 +1,4 @@
-{% for box in boxes %}
+{% for box in vagrant_provisioner_boxes_customized %}
 - name:  "{{ "box_" + box.name + "_customization" }}"
   box: "{{ box.name }}"
 {% if "hostname" not in box %}

@@ -20,7 +20,6 @@
         path: "{{ vm_path }}"
         state: directory
         force: yes
-        recurse: yes
         mode: 0700
       with_items: "{{ vms_state_started }}"
       loop_control:
@@ -31,8 +30,6 @@
       template:
         src: Vagrantfile.j2
         dest: "{{ vm_path }}/Vagrantfile"
-        force: yes
-        backup: yes
         mode: 0600
       register: vagrant_provisioner_create_vagrantfile_result
       with_items: "{{ vms_state_started }}"

@@ -27,10 +27,7 @@ vagrant_provisioner_plugins: []
 #                                  # The temporary vm launched to customize the
 #                                  # image can be tunned using the attributes
 #                                  # detailed below for
-#                                  # vagrant_provisioner_vms
-#  customized_name: "custom"       # Name of the new customized image. If not
-#                                  # given the suffix "_custom" is added to the
-#                                  # base image name }
+#                                  # vagrant_provisioner_vms }
 
 vagrant_provisioner_boxes: []
 
@@ -74,7 +71,6 @@ vagrant_provisioner_box_max_provisioning_time: 300
 #   # details.
 #
 #   ansible_connection: ssh
-#   ansible_port: 22
 #   ansible_user: vagrant
 #   ansible_ssh_pass:
 #   ansible_ssh_private_key_file:  # Default is to get the private key generated
@@ -104,7 +100,6 @@ vagrant_provisioner_vm_cpus: 1
 vagrant_provisioner_vm_groups: [ 'vagrant_provisioner_vms' ]
 vagrant_provisioner_vm_playbook: ""
 vagrant_provisioner_vm_ansible_connection: ssh
-vagrant_provisioner_vm_ansible_port: 22
 vagrant_provisioner_vm_ansible_user: vagrant
 vagrant_provisioner_vm_ansible_ssh_pass: vagrant
 vagrant_provisioner_vm_ansible_ssh_common_args:

@@ -158,8 +158,11 @@
              | regex_replace(".*HostName (.*)", "\1")
              | trim }}
         ansible_port: >-
-          {{ vm.1.ansible_port
-             | default(vagrant_provisioner_vm_ansible_port) }}
+          {{ ssh_configs[vm.0].stdout_lines
+             | select("search", "Port")
+             | first
+             | regex_replace(".*Port (.*)", "\1")
+             | trim }}
         ansible_user: >-
           {{ vm.1.ansible_user
              | default(vagrant_provisioner_vm_ansible_user) }}

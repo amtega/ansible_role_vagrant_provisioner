@@ -119,7 +119,7 @@ vagrant_provisioner_vm_max_provisioning_time: 300
 
 # Default base directory to store vagrant vms
 
-vagrant_provisioner_vms_directory: "~/.vagrant/virtual_machines"
+vagrant_provisioner_vms_directory: "~/.vagrant"
 
 # Time to wait (in seconds) between vms provisioning start to avoid
 # overwhelming the machine launching too many asynchronous provisioning

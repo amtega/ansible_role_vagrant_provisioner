@@ -61,8 +61,7 @@
             or (async_item.box.1.state
                 | default(vagrant_provisioner_box_state) == "absent"
                 and vagrant_provisioner_boxes_setup_result.stdout
-                    | search(",ui,info,From libvirt storage pool "+
-                             "you have to delete image manually"))
+                    | search(",ui,info,Removing box"))
       with_items: "{{ vagrant_provisioner_boxes_async_result.results }}"
       loop_control:
         label: >-

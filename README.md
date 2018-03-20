@@ -31,7 +31,7 @@ This is an example playbook:
       - name: "fedora_27"
         address: "fedora/27-cloud-base"        
         state: present        
-        provider: "libvirt"
+        provider: "virtualbox"
     vagrant_provisioner_vms:
       - name: "fedora_27"        
         box: "fedora_27"          
@@ -64,7 +64,7 @@ This is an example playbook:
     vagrant_provisioner_boxes:
       - name: "fedora/27-cloud-base"
         state: absent
-        provider: "libvirt"
+        provider: "virtualbox"
 ```
 
 ## Testing

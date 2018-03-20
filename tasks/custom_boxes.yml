@@ -1,0 +1,71 @@
+---
+# Setup vagrant boxes
+- block:
+    - name: customize vagrant boxes
+      include_tasks: vms.yml
+      when: vagrant_provisioner_custom_boxes_vms | length > 0
+      vars:
+        vagrant_provisioner_vm_state: "started"
+        vagrant_provisioner_vms: "{{ vagrant_provisioner_custom_boxes_vms }}"
+
+    - block:
+        - name: package customized vms into vagrant boxes
+          shell: >-
+            vagrant package --machine-readable
+            --output {{ vm.1.name }}.box | tee -a vagrant.log
+          args:
+            chdir: "{{ vm_path }}"
+          register: vagrant_provisioner_package_boxes_result
+          changed_when: >-
+            vagrant_provisioner_package_boxes_result.stdout
+            | search("action,package,end")
+          failed_when: >-
+            vagrant_provisioner_package_boxes_result.rc != 0
+            or (not vagrant_provisioner_package_boxes_result.stdout
+                    | search("action,package,end")
+                and not vagrant_provisioner_package_boxes_result.stdout
+                        | search("package as already exists") )
+          with_indexed_items: "{{ vagrant_provisioner_custom_boxes_vms }}"
+          loop_control:
+            loop_var: vm
+            label: "{{ vm.1.name }}"
+
+        - name: add customized boxes to vagrant
+          shell: >-
+            vagrant box --machine-readable add --force
+            {{ vm.1.name }}
+            {{ vm.1.name }}.box | tee -a vagrant.log
+          args:
+            chdir: "{{ vm_path }}"
+          register: vagrant_provisioner_add_custom_boxes_result
+          changed_when: >-
+            vagrant_provisioner_add_custom_boxes_result.stdout
+            | search("box,ui,success")
+          failed_when: >-
+            not vagrant_provisioner_add_custom_boxes_result.stdout
+                | search("box,ui,success")
+          when: >-
+              vagrant_provisioner_package_boxes_result.results[vm.0]
+              | changed
+          with_indexed_items: "{{ vagrant_provisioner_custom_boxes_vms }}"
+          loop_control:
+            loop_var: vm
+            label: "{{ vm.1.name }}"
+          vars:
+            boxes: "{{ vagrant_provisioner_custom_boxes }}"
+      vars:
+        vm_path: >-
+          {{ vm.1.directory
+             | default(vagrant_provisioner_vms_directory | expanduser
+                       + "/"
+                       + vm.1.name) }}
+
+    - name: drop temporary vms created to customize boxes
+      include_tasks: vms.yml
+      vars:
+        vagrant_provisioner_vm_state: "absent"
+        vagrant_provisioner_vms: "{{ vagrant_provisioner_custom_boxes_vms }}"
+        vagrant_force_custom_boxes: true
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::boxes::custom

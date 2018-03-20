@@ -2,7 +2,11 @@
               | selectattr("name", "equalto", vm.box)
               | first -%}
 Vagrant.configure(2) do |config|
+{% if box.playbook | default('') | length == 0 %}
   config.vm.box = "{{ box.address }}"
+{% else %}
+  config.vm.box = "{{ box.name }}"
+{% endif %}
 {% if box.version | default(vagrant_provisioner_box_version) | length > 0 %}
   config.vm.box_version = "{{ box.version | default(vagrant_provisioner_box_version) }}"
 {% endif %}

@@ -77,88 +77,40 @@
            | default(vagrant_provisioner_box_max_provisioning_time) }}
       delay: "{{ vagrant_provisioner_boxes_interleave_time }}"
 
-    - block:
-        - name: customize vagrant boxes
-          include_tasks: vms.yml
-          vars:
-            vagrant_provisioner_vm_state: "started"
-            vagrant_provisioner_vms: "{{ vagrant_provisioner_boxes_tmp_vms }}"
-
-        - block:
-            - name: package customized vms into vagrant boxes
-              shell: >-
-                vagrant package --machine-readable
-                --output {{ vm.1.name }}.box | tee -a vagrant.log
-              args:
-                chdir: "{{ vm_path }}"
-              register: vagrant_provisioner_package_boxes_result
-              changed_when: >-
-                vagrant_provisioner_package_boxes_result.stdout
-                | search("action,package,end")
-              failed_when: >-
-                vagrant_provisioner_package_boxes_result.rc != 0
-                or (not vagrant_provisioner_package_boxes_result.stdout
-                        | search("action,package,end")
-                    and not vagrant_provisioner_package_boxes_result.stdout
-                            | search("package as already exists") )
-              with_indexed_items: "{{ vagrant_provisioner_boxes_tmp_vms }}"
-              loop_control:
-                loop_var: vm
-                label: "{{ vm.1.name }}"
-
-            - name: add customized boxes to vagrant
-              shell: >-
-                vagrant box --machine-readable add
-                {{ boxes[vm.1.box].customized_name
-                   | default(boxes[vm.1.box].name + "_custom") }}
-                {{ vm.1.name }}.box| tee -a vagrant.log
-              args:
-                chdir: "{{ vm_path }}"
-              register: vagrant_provisioner_add_custom_boxes_result
-              changed_when: >-
-                vagrant_provisioner_add_custom_boxes_result.stdout
-                | search("box,ui,success")
-              failed_when: >-
-                not vagrant_provisioner_add_custom_boxes_result.stdout
-                    | search("box,ui,success")
-              with_indexed_items: "{{ vagrant_provisioner_boxes_tmp_vms }}"
-              loop_control:
-                loop_var: vm
-                label: >-
-                  {{ boxes[vm.1.box].customized_name
-                     | default(boxes[vm.1.box].name + "_custom") }}
-              vars:
-                boxes: "{{ vagrant_provisioner_boxes_customized }}"
-          vars:
-            vm_path: >-
-              {{ vm.1.directory
-                 | default(vagrant_provisioner_vms_directory | expanduser
-                           + "/"
-                           + vm.1.name) }}
-
-        - name: drop temporary vms created to customize boxes
-          include_tasks: vms.yml
-          vars:
-            vagrant_provisioner_vm_state: "absent"
-            vagrant_provisioner_vms: "{{ vagrant_provisioner_boxes_tmp_vms }}"
+    - name: setup customized vagrant boxes
+      include_tasks: custom_boxes.yml
+      when: vagrant_provisioner_custom_boxes_vms | length > 0
       vars:
-        vagrant_provisioner_boxes_customized_undefined: >-
+        vagrant_provisioner_boxes_found: >-
+          {{ lookup("pipe", "vagrant --machine-readable box list").splitlines()
+             | select("search", ",box-name,")
+             | map("regex_replace", ".*box-name,(.*)", "\1")
+             | list
+          }}
+
+        vagrant_provisioner_boxes_changed: >-
+          {{ vagrant_provisioner_boxes_setup_result.results
+             | select("changed")
+             | map(attribute="async_item.box.1.name")
+             | list }}
+
+        vagrant_provisioner_custom_boxes_undefined: >-
           {{ vagrant_provisioner_boxes
              | selectattr("playbook", "defined")
              | selectattr("state", "undefined")
              | list }}
 
-        vagrant_provisioner_boxes_customized: >-
+        vagrant_provisioner_custom_boxes: >-
           {{ vagrant_provisioner_boxes
-             | difference(vagrant_provisioner_boxes_customized_undefined)
+             | difference(vagrant_provisioner_custom_boxes_undefined)
              | selectattr("playbook", "defined")
              | selectattr("state", "equalto", "present")
              | list
              + (vagrant_provisioner_box_state == "present")
-               | ternary(vagrant_provisioner_boxes_customized_undefined, []) }}
+               | ternary(vagrant_provisioner_custom_boxes_undefined, []) }}
 
-        vagrant_provisioner_boxes_tmp_vms: >-
-          {{ lookup('template', 'customized_boxes.j2') | from_yaml }}
+        vagrant_provisioner_custom_boxes_vms: >-
+          {{ lookup('template', 'custom_boxes.j2') | from_yaml }}
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::boxes

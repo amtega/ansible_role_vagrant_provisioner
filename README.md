@@ -69,7 +69,9 @@ This is an example playbook:
 
 ## Testing
 
-You can run the tests with the following commands:
+Tests are based on vagrant virtual machines. You can setup vagrant engine quickly using the playbook `files/setup.yml` available in the role [amtega.vagrant_engine](https://galaxy.ansible.com/amtega/vagrant_engine).
+
+Once you have vagrant, you can run the tests with the following commands:
 
 ```shell
 $ cd tests

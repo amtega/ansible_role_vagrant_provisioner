@@ -2,6 +2,10 @@
 # Setup vagrant vms
 
 - block:
+    - name: refresh vagrant status
+      shell: vagrant global-status --prune
+      changed_when: false
+
     - name: read vagrant virtual machines directories
       stat:
         path: "{{ vm_path }}"
@@ -16,7 +20,6 @@
         path: "{{ vm_path }}"
         state: directory
         force: yes
-        recurse: yes
         mode: 0700
       with_items: "{{ vms_state_started }}"
       loop_control:
@@ -27,8 +30,6 @@
       template:
         src: Vagrantfile.j2
         dest: "{{ vm_path }}/Vagrantfile"
-        force: yes
-        backup: yes
         mode: 0600
       register: vagrant_provisioner_create_vagrantfile_result
       with_items: "{{ vms_state_started }}"
@@ -49,7 +50,10 @@
 
     - name: launch vagrant asynchronous virtual machines provisioning
       shell: >-
-        sleep {{ vagrant_provisioner_vms_interleave_time * vm.0 }}s ;
+        sleep {{ (vm.1.state
+                  | default(vagrant_provisioner_vm_state) == "started")
+                 | ternary(vagrant_provisioner_vms_interleave_time * vm.0,
+                           0) }}s ;
         vagrant --machine-readable
         {{ (vm.1.state | default(vagrant_provisioner_vm_state) == "started")
            | ternary("up", "destroy --force") }} | tee -a vagrant.log
@@ -106,9 +110,12 @@
       failed_when:
           (async_item.vm.1.state
            | default(vagrant_provisioner_vm_state) == "started"
-           and ',ui,error,'
-               in vagrant_provisioner_vms_setup_result.stdout | default([])
-               or vagrant_provisioner_vms_setup_result.rc | default(0) != 0)
+           and (',ui,error,'
+                in vagrant_provisioner_vms_setup_result.stdout | default([])
+                or vagrant_provisioner_vms_setup_result.rc | default(0) != 0
+                or ',action,up,end'
+                   not in vagrant_provisioner_vms_setup_result.stdout
+                          | default([])))
           or 'error-exit'
              in vagrant_provisioner_vms_setup_result.stdout | default([])
       with_items: "{{ vagrant_provisioner_vms_async_result.results }}"
@@ -151,8 +158,11 @@
              | regex_replace(".*HostName (.*)", "\1")
              | trim }}
         ansible_port: >-
-          {{ vm.1.ansible_port
-             | default(vagrant_provisioner_vm_ansible_port) }}
+          {{ ssh_configs[vm.0].stdout_lines
+             | select("search", "Port")
+             | first
+             | regex_replace(".*Port (.*)", "\1")
+             | trim }}
         ansible_user: >-
           {{ vm.1.ansible_user
              | default(vagrant_provisioner_vm_ansible_user) }}
@@ -231,10 +241,21 @@
 
     - name: remove vagrant virtual machines old ssh known_hosts entries
       known_hosts:
-        name: >-
-          {{ vagrant_provisioner_get_public_key_result.results[vm.0].stdout }}
+        name: "{{ hostvars[vm.1.hostname]['ansible_host'] }}"
         state: absent
       with_indexed_items: "{{ vms_state_started | list }}"
+      loop_control:
+        label: "{{ vm.1.hostname }}"
+        loop_var: vm
+
+    - name: add ssh known_hosts entries for vms
+      known_hosts:
+        name: "{{ hostvars[vm.1.hostname]['ansible_host'] }}"
+        key: >-
+          {{ vagrant_provisioner_get_public_key_result.results[vm.0].stdout }}
+        state: present
+      with_indexed_items: "{{ vms_state_started | list }}"
+      vars:
       loop_control:
         label: "{{ vm.1.hostname }}"
         loop_var: vm

@@ -1,0 +1,16 @@
+{% for box in vagrant_provisioner_boxes_to_build %}
+{% if box.name in vagrant_provisioner_boxes_changed
+   or box.name not in vagrant_provisioner_boxes_found
+   or vagrant_provisioner_boxes_force_build %}
+- name:  "{{ box.name }}"
+  box: "{{ box.name }}"
+  hostname: "{{ box.name | regex_replace("_", "-") }}"
+{% for attribute in box  %}
+{% if attribute not in ['name', 'box'] %}
+  {{ attribute }}: "{{ box[attribute] }}"
+{% endif %}
+{% endfor %}
+{% endif %}
+{% else %}
+[]
+{% endfor %}

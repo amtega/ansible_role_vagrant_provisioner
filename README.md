@@ -1,10 +1,11 @@
 # vagrant_provision
 
-This is an [Ansible](http://www.ansible.com) role to provision a vagrant engine.
+This is an [Ansible](http://www.ansible.com) role to provisione vagrant boxes and virtual machines.
 
 ## Requirements
 
-- Ansible >= 2.4
+- [Ansible 2.4+](http://docs.ansible.com/ansible/latest/intro_installation.html)
+- [Vagrant 2.0+](https://www.vagrantup.com/). You can use [amtega.vagrant_engine](https://galaxy.ansible.com/amtega/vagrant_engine/) role to setup it.
 
 ## Role Variables
 
@@ -12,7 +13,7 @@ A list of all the default variables for this role is available in `defaults/main
 
 ## Dependencies
 
-- amtega.vagrant_engine
+None.
 
 ## Example Playbook
 
@@ -20,65 +21,52 @@ This is an example playbook:
 
 ```yaml
 ---
-- name: Create fedora 27 cloud base vagrant instance
+- name: create fedora 27 cloud base vagrant vm
   hosts: localhost
-
   roles:
     role: ansible_vagrant_provisioner    
-    vagrant_provisioner_banner_message: Provision fedora/27-cloud-base vm
     vagrant_provisioner_boxes:
-      - name: "fedora_27"
-        address: "fedora/27-cloud-base"        
+      - name: fedora_27
+        address: fedora/27-cloud-base
         state: present        
-        provider: "libvirt"
+        provider: virtualbox
     vagrant_provisioner_vms:
-      - name: "fedora_27"        
-        box: "fedora_27"          
+      - name: fedora_27
+        box: fedora_27
         state: started        
-        hostname: "fedora-27-cloud-base"        
+        hostname: fedora-27-cloud-base
         ansible_python_interpreter: /usr/bin/python3        
-        driver: kvm
         memory: 1024
         cpus: 1
 
----
-- name: Delete fedora 27 cloud base vagrant vm instance
+- name: delete fedora 27 cloud base vagrant vm
   hosts: localhost
-
   roles:
-  - role: ansible_vagrant_provisioner
-    vagrant_provisioner_banner_message: Cleanup fedora 27 cloud base virtual machine
+  - role: ansible_vagrant_provisioner    
     vagrant_provisioner_vms:
       - name: "fedora_27_cloud_base"
-        state: absent
-        hostname: "fedora-27-cloud-base"
-        subdirectory: "fedora_27_cloud_base"
+        state: absent       
 
----
-- name: Delete fedora 27 cloud base vagrant box
+- name: delete fedora 27 cloud base vagrant box
   hosts: localhost
-
   roles:
-  - role: ansible_vagrant_provisioner
-    vagrant_provisioner_banner_message: Cleanup fedora 27 cloud base virtual box
+  - role: ansible_vagrant_provisioner    
     vagrant_provisioner_boxes:
-      - name: "fedora/27-cloud-base"
+      - name: fedora/27-cloud-base
         state: absent
-        provider: "libvirt"
+        provider: virtualbox
 ```
 
 ## Testing
 
+Tests are based on vagrant virtual machines. You can setup vagrant engine quickly using the playbook `files/setup.yml` available in the role [amtega.vagrant_engine](https://galaxy.ansible.com/amtega/vagrant_engine).
+
+Once you have vagrant, you can run the tests with the following commands:
+
 ```shell
-$ cd ansible_vagrant_provisioner/tests
+$ cd tests
 $ ansible-playbook main.yml
 ```
-
-If you have vagrant engine configured you can avoid running dependant 'vagrant_engine' role (that usually requries root privileges) with the following commands:
-
-```shell
-$ cd amtega.vagrant_provisioner/tests
-$ ansible-playbook --skip-tags "role::vagrant_engine" main.yml
 
 ## License
 

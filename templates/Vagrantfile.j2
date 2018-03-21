@@ -2,18 +2,31 @@
               | selectattr("name", "equalto", vm.box)
               | first -%}
 Vagrant.configure(2) do |config|
+{% if box.playbook | default('') | length == 0 or box.name == vm.name %}
   config.vm.box = "{{ box.address }}"
+{% else %}
+  config.vm.box = "{{ box.name }}"
+{% endif %}
+{% if box.version | default(vagrant_provisioner_box_version) | length > 0 %}
+  config.vm.box_version = "{{ box.version | default(vagrant_provisioner_box_version) }}"
+{% endif %}
   config.vm.define "{{ vm.name }}"
   config.vm.hostname = "{{ vm.hostname }}"
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.provider "{{ box.provider | default(vagrant_provisioner_box_provider) }}" do |provider|
-  	provider.driver = "{{ vm.driver | default(vagrant_provisioner_vm_driver) }}"
-  	provider.memory = {{ vm.memory | default(vagrant_provisioner_vm_memory) }}
-  	provider.cpus = {{ vm.cpus | default(vagrant_provisioner_vm_cpus) }}
+    provider.name = "{{ vm.name }}"
+  	provider.memory = "{{ vm.memory | default(vagrant_provisioner_vm_memory) }}"
+  	provider.cpus = "{{ vm.cpus | default(vagrant_provisioner_vm_cpus) }}"
+
+  {%- set provider_options = box.provider_options | default(vagrant_provisioner_box_provider_options) %}
+
+  {% for o in provider_options %}
+    provider.{{ o }} = "{{ provider_options[o] }}"
+  {% endfor %}
   end
+
 {% if vm.playbook | default(vagrant_provisioner_vm_playbook) | length > 0 %}
   config.vm.provision "ansible" do |ansible|
-
     ansible.playbook = "{{ vm.playbook | default(vagrant_provisioner_vm_playbook) }}"
 {% if vm.ansible_python_interpreter | default(vagrant_provisioner_vm_ansible_python_interpreter) | length > 0 %}
     ansible.extra_vars = {

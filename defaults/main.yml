@@ -7,18 +7,27 @@
 # { name: "vagrant-libvirt"        # Name of the plugin
 #   state: present                 # present or absent }
 
-vagrant_provisioner_plugins:
-  - name: vagrant-libvirt
-    state: present
+vagrant_provisioner_plugins: []
 
 # List of dicts with the boxes to provisione. The dicts must have the following
 # format:
 #
 # { name: "centos_7"               # Display name
 #   address: "centos/7"            # Name in https://app.vagrantup.com
-#   provider: "libvirt"            # Only tested with libvirt and docker
+#   version: ""                    # Version of the box to download. If not
+#                                  # specified will use latest
+#   provider: "virtualbox"         # Only tested with virtualbox
+#   provider_options: {}           # Dict with the specific provider settings
 #   state: present                 # present or absent (to add remove the box)
-#   max_provisioning_time: 300     # Maximum time to provisione }
+#   max_provisioning_time: 300     # Maximum time to provisione
+#
+#   playbook: ""                   # Playbook to customize the image
+#                                  # If specified a new image will be generated
+#                                  # and be customized using the given playbook.
+#                                  # The temporary vm launched to customize the
+#                                  # image can be tunned using the attributes
+#                                  # detailed below for
+#                                  # vagrant_provisioner_vms }
 
 vagrant_provisioner_boxes: []
 
@@ -28,10 +37,17 @@ vagrant_provisioner_boxes: []
 
 vagrant_provisioner_boxes_interleave_time: 1
 
+# The role tries to guess if it's necessary to build vagrant boxes. If this
+# variable is set to true build is forced
+
+vagrant_provisioner_boxes_force_build: false
+
 # Box options to apply if no other ones are specified in the specific
 # image dictionary of the vagrant_provisioner_boxes variable.
 
-vagrant_provisioner_box_provider: "libvirt"
+vagrant_provisioner_box_version: ""
+vagrant_provisioner_box_provider: "virtualbox"
+vagrant_provisioner_box_provider_options: {}
 vagrant_provisioner_box_state: "present"
 vagrant_provisioner_box_max_provisioning_time: 300
 
@@ -45,7 +61,6 @@ vagrant_provisioner_box_max_provisioning_time: 300
 #   directory: "~/centos-7"     # Directory to store virtual vm
 #                               # Default is a subdirectory with hostname inside
 #                               # vagrant_provisioner_vms_directory
-#   driver: kvm                 # Virtual machine driver
 #   memory: 1024                # Virtual machine memory
 #   cpus: 1                     # Virtual machine number of CPUs
 #   groups:                     # Ansible groups to put vms in
@@ -61,7 +76,6 @@ vagrant_provisioner_box_max_provisioning_time: 300
 #   # details.
 #
 #   ansible_connection: ssh
-#   ansible_port: 22
 #   ansible_user: vagrant
 #   ansible_ssh_pass:
 #   ansible_ssh_private_key_file:  # Default is to get the private key generated
@@ -86,13 +100,11 @@ vagrant_provisioner_vms: []
 # container dictionary of the vagrant_provisioner_vms variable.
 
 vagrant_provisioner_vm_state: started
-vagrant_provisioner_vm_driver: kvm
-vagrant_provisioner_vm_memory: 1024
+vagrant_provisioner_vm_memory: 512
 vagrant_provisioner_vm_cpus: 1
 vagrant_provisioner_vm_groups: [ 'vagrant_provisioner_vms' ]
 vagrant_provisioner_vm_playbook: ""
 vagrant_provisioner_vm_ansible_connection: ssh
-vagrant_provisioner_vm_ansible_port: 22
 vagrant_provisioner_vm_ansible_user: vagrant
 vagrant_provisioner_vm_ansible_ssh_pass: vagrant
 vagrant_provisioner_vm_ansible_ssh_common_args:
@@ -112,13 +124,13 @@ vagrant_provisioner_vm_max_provisioning_time: 300
 
 # Default base directory to store vagrant vms
 
-vagrant_provisioner_vms_directory: "~/.vagrant/virtual_machines"
+vagrant_provisioner_vms_directory: "~/.vagrant"
 
 # Time to wait (in seconds) between vms provisioning start to avoid
 # overwhelming the machine launching too many asynchronous provisioning
 # processes at the same time
 
-vagrant_provisioner_vms_interleave_time: 5
+vagrant_provisioner_vms_interleave_time: 1
 
 # If defined, this variable tells to role to create a minimal inventory file
 # containing the deployed vms. Be warned that auth info is contained in

@@ -1,13 +1,18 @@
 ---
 # Setup vagrant plugins
 
+- name: get vagrant plugin list
+  shell: vagrant plugin list
+  changed_when: false
+  register: vagrant_provisioner_get_plugins_result
+
 - name: setup vagrant plugins
   shell: >-
     vagrant plugin
     {{ (plugin.state == "present") | ternary("install", "uninstall") }}
     {{ plugin.name }}
   register: vagrant_provisioner_plugin_setup_result
-  failed_when: >-
+  failed_when:
     - >-
       plugin.state == "present"
       and not vagrant_provisioner_plugin_setup_result.stdout
@@ -18,13 +23,11 @@
               | search("Successfully uninstalled .*" + plugin.name)
   when: >-
     (plugin.state == "present"
-     and lookup("pipe",
-               "vagrant plugin list | grep " + plugin.name + " || true")
-        | length == 0)
+     and not vagrant_provisioner_get_plugins_result.stdout
+             | search(plugin.name))
     or (plugin.state == "absent"
-        and lookup("pipe",
-                   "vagrant plugin list | grep " + plugin.name + " || true")
-            | length > 0)
+        and vagrant_provisioner_get_plugins_result.stdout
+            | search(plugin.name))
   with_items: "{{ vagrant_provisioner_plugins }}"
   loop_control:
     label: "{{ plugin.name }}"

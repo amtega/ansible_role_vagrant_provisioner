@@ -2,6 +2,11 @@
 # Setup vagrant boxes
 
 - block:
+    - name: get vagrant boxes list
+      shell: vagrant --machine-readable box list
+      changed_when: false
+      register: vagrant_provisioner_get_boxes_result
+
     - name: launch vagrant asynchronous boxes provisioning
       shell: >-
         sleep {{ vagrant_provisioner_boxes_interleave_time * box.0 }}s ;
@@ -11,6 +16,13 @@
         {{ box.1.provider | default(vagrant_provisioner_box_provider) }}
         --machine-readable
         "{{ box.1.address }}"
+        {{ (box.1.version
+            | default(vagrant_provisioner_box_version)
+            | length > 0)
+           | ternary('--box-version "'
+                     + box.1.version
+                       | default(vagrant_provisioner_box_version) + '"',
+                     "") }}
       register: vagrant_provisioner_boxes_async_result
       changed_when: false
       with_indexed_items: "{{ vagrant_provisioner_boxes }}"
@@ -38,24 +50,28 @@
         - >-
           async_item.box.1.state
           | default(vagrant_provisioner_box_state) == "present"
-          and ",ui,error,The box you're attempting to add already exists."
-              not in vagrant_provisioner_boxes_setup_result.stdout
+          and vagrant_provisioner_boxes_setup_result.stdout
+              | default("")
+              | search("box you're attempting to add already exists")
         - >-
           async_item.box.1.state
           | default(vagrant_provisioner_box_state) == "absent"
-          and ",error-exit,Vagrant::Errors::BoxRemoveNotFound,"
-              not in vagrant_provisioner_boxes_setup_result.stdout
+          and vagrant_provisioner_boxes_setup_result.stdout
+              | default("")
+              | search("error-exit,Vagrant::Errors::BoxRemoveNotFound")
+
       changed_when: >-
         vagrant_provisioner_boxes_setup_result.rc | default(1) == 0
         and (async_item.box.1.state
              | default(vagrant_provisioner_box_state) == "present"
              and vagrant_provisioner_boxes_setup_result.stdout
+                 | default("")
                  | search("Successfully added box"))
             or (async_item.box.1.state
                 | default(vagrant_provisioner_box_state) == "absent"
                 and vagrant_provisioner_boxes_setup_result.stdout
-                    | search(",ui,info,From libvirt storage pool "+
-                             "you have to delete image manually"))
+                    | default("")
+                    | search(",ui,info,Removing box"))
       with_items: "{{ vagrant_provisioner_boxes_async_result.results }}"
       loop_control:
         label: >-
@@ -69,6 +85,64 @@
         {{ async_item.max_provisioning_time
            | default(vagrant_provisioner_box_max_provisioning_time) }}
       delay: "{{ vagrant_provisioner_boxes_interleave_time }}"
+
+    - name: search temporary vms created to build boxes
+      find:
+        paths: "{{ vagrant_provisioner_vms_directory | expanduser }}"
+        recurse: yes
+        patterns:
+          - fedora_27
+          - fedora_26
+        file_type: directory
+      register: vagrant_sandbox_search_boxes_vms_result
+
+    - block:
+        - name: build vagrant boxes
+          include_tasks: build_boxes.yml
+          when: vagrant_provisioner_boxes_vms | length > 0
+
+        - name: drop temporary vms created to build boxes
+          include_tasks: vms.yml
+          when:
+            vagrant_provisioner_boxes_vms | length > 0
+            or vagrant_provisioner_boxes_vms_created | length > 0
+          vars:
+           vagrant_provisioner_vm_state: "absent"
+           vagrant_provisioner_vms: "{{ vagrant_provisioner_boxes_vms }}"
+           vagrant_provisioner_boxes_force_build: true
+      vars:
+        vagrant_provisioner_boxes_found: >-
+          {{ vagrant_provisioner_get_boxes_result.stdout.splitlines()
+             | select("search", ",box-name,")
+             | map("regex_replace", ".*box-name,(.*)", "\1")
+             | list }}
+        vagrant_provisioner_boxes_changed: >-
+          {{ vagrant_provisioner_boxes_setup_result.results
+             | select("changed")
+             | map(attribute="async_item.box.1.name")
+             | list }}
+        vagrant_provisioner_boxes_undefined: >-
+          {{ vagrant_provisioner_boxes
+             | selectattr("playbook", "defined")
+             | selectattr("state", "undefined")
+             | list }}
+        vagrant_provisioner_boxes_to_build: >-
+          {{ vagrant_provisioner_boxes
+             | difference(vagrant_provisioner_boxes_undefined)
+             | selectattr("playbook", "defined")
+             | selectattr("state", "equalto", "present")
+             | list
+             + (vagrant_provisioner_box_state == "present")
+               | ternary(vagrant_provisioner_boxes_undefined, []) }}
+        vagrant_provisioner_boxes_vms: >-
+          {{ lookup('template', 'boxes_to_build.j2') | from_yaml }}
+
+        vagrant_provisioner_boxes_vms_created: >-
+          {{ vagrant_sandbox_search_boxes_vms_result.files
+             | selectattr("path", "defined")
+             | map(attribute="path")
+             | map("basename")
+             | list }}
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::boxes

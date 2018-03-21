@@ -10,7 +10,6 @@ galaxy_info:
   platforms:
   - name: Fedora
     versions:
-      - 25
       - 26
       - 27
   - name: EL
@@ -22,5 +21,4 @@ galaxy_info:
     - system
     - virtualization
 
-dependencies:
-  - amtega.vagrant_engine
+dependencies: []

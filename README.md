@@ -1,6 +1,6 @@
 # vagrant_provision
 
-This is an [Ansible](http://www.ansible.com) role to provision a vagrant engine.
+This is an [Ansible](http://www.ansible.com) role to provisione vagrant boxes and virtual machines.
 
 ## Requirements
 

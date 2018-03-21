@@ -37,6 +37,11 @@ vagrant_provisioner_boxes: []
 
 vagrant_provisioner_boxes_interleave_time: 1
 
+# The role tries to guess if it's necessary to build vagrant boxes. If this
+# variable is set to true build is forced
+
+vagrant_provisioner_boxes_force_build: false
+
 # Box options to apply if no other ones are specified in the specific
 # image dictionary of the vagrant_provisioner_boxes variable.
 

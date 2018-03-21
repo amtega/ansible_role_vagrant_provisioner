@@ -21,50 +21,40 @@ This is an example playbook:
 
 ```yaml
 ---
-- name: Create fedora 27 cloud base vagrant instance
+- name: create fedora 27 cloud base vagrant vm
   hosts: localhost
-
   roles:
     role: ansible_vagrant_provisioner    
-    vagrant_provisioner_banner_message: Provision fedora/27-cloud-base vm
     vagrant_provisioner_boxes:
-      - name: "fedora_27"
-        address: "fedora/27-cloud-base"        
+      - name: fedora_27
+        address: fedora/27-cloud-base
         state: present        
-        provider: "virtualbox"
+        provider: virtualbox
     vagrant_provisioner_vms:
-      - name: "fedora_27"        
-        box: "fedora_27"          
+      - name: fedora_27
+        box: fedora_27
         state: started        
-        hostname: "fedora-27-cloud-base"        
+        hostname: fedora-27-cloud-base
         ansible_python_interpreter: /usr/bin/python3        
         memory: 1024
         cpus: 1
 
----
-- name: Delete fedora 27 cloud base vagrant vm instance
+- name: delete fedora 27 cloud base vagrant vm
   hosts: localhost
-
   roles:
-  - role: ansible_vagrant_provisioner
-    vagrant_provisioner_banner_message: Cleanup fedora 27 cloud base virtual machine
+  - role: ansible_vagrant_provisioner    
     vagrant_provisioner_vms:
       - name: "fedora_27_cloud_base"
-        state: absent
-        hostname: "fedora-27-cloud-base"
-        subdirectory: "fedora_27_cloud_base"
+        state: absent       
 
----
-- name: Delete fedora 27 cloud base vagrant box
+- name: delete fedora 27 cloud base vagrant box
   hosts: localhost
-
   roles:
-  - role: ansible_vagrant_provisioner
-    vagrant_provisioner_banner_message: Cleanup fedora 27 cloud base virtual box
+  - role: ansible_vagrant_provisioner    
     vagrant_provisioner_boxes:
-      - name: "fedora/27-cloud-base"
+      - name: fedora/27-cloud-base
         state: absent
-        provider: "virtualbox"
+        provider: virtualbox
 ```
 
 ## Testing

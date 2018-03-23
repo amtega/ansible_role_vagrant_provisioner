@@ -15,7 +15,7 @@
         --provider
         {{ box.1.provider | default(vagrant_provisioner_box_provider) }}
         --machine-readable
-        "{{ box.1.address }}"
+        {{ box.1.address }}
         {{ (box.1.version
             | default(vagrant_provisioner_box_version)
             | length > 0)
@@ -59,7 +59,6 @@
           and vagrant_provisioner_boxes_setup_result.stdout
               | default("")
               | search("error-exit,Vagrant::Errors::BoxRemoveNotFound")
-
       changed_when: >-
         vagrant_provisioner_boxes_setup_result.rc | default(1) == 0
         and (async_item.box.1.state
@@ -82,30 +81,35 @@
         loop_var: async_item
       until: vagrant_provisioner_boxes_setup_result.finished
       retries: >-
-        {{ async_item.max_provisioning_time
-           | default(vagrant_provisioner_box_max_provisioning_time) }}
+        {{ (async_item.max_provisioning_time
+            | default(vagrant_provisioner_box_max_provisioning_time)
+            / vagrant_provisioner_boxes_interleave_time) | int }}
       delay: "{{ vagrant_provisioner_boxes_interleave_time }}"
-
-    - name: search temporary vms created to build boxes
-      find:
-        paths: "{{ vagrant_provisioner_vms_directory | expanduser }}"
-        recurse: yes
-        patterns:
-          - fedora_27
-          - fedora_26
-        file_type: directory
-      register: vagrant_sandbox_search_boxes_vms_result
 
     - block:
         - name: build vagrant boxes
           include_tasks: build_boxes.yml
           when: vagrant_provisioner_boxes_vms | length > 0
 
+        - name: search temporary vms created to build boxes
+          find:
+            paths: "{{ vagrant_provisioner_vms_directory | expanduser }}"
+            recurse: yes
+            patterns: >-
+              {{ lookup('template', 'boxes_to_build.j2') | from_yaml
+                 | map(attribute="name")
+                 | map("basename")
+                 | map("regex_replace", "(.*)", "^\1$")
+                 | list }}
+            use_regex: yes
+            file_type: directory
+          vars:
+              vagrant_provisioner_boxes_force_build: true
+          register: vagrant_sandbox_search_boxes_vms_result
+
         - name: drop temporary vms created to build boxes
           include_tasks: vms.yml
-          when:
-            vagrant_provisioner_boxes_vms | length > 0
-            or vagrant_provisioner_boxes_vms_created | length > 0
+          when: vagrant_provisioner_boxes_vms_created | length > 0
           vars:
            vagrant_provisioner_vm_state: "absent"
            vagrant_provisioner_vms: "{{ vagrant_provisioner_boxes_vms }}"

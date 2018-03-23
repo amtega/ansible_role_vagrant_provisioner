@@ -127,9 +127,10 @@
         loop_var: async_item
       until: vagrant_provisioner_vms_setup_result.finished
       retries: >-
-        {{ async_item.vm.max_provisioning_time
-           | default(vagrant_provisioner_vm_max_provisioning_time) }}
-      delay: 1
+        {{ (async_item.vm.max_provisioning_time
+            | default(vagrant_provisioner_vm_max_provisioning_time)
+            / vagrant_provisioner_vms_interleave_time) | int }}
+      delay: "{{ vagrant_provisioner_vms_interleave_time }}"
 
     - name: get vagrant virtual machines ssh config
       shell: "vagrant ssh-config"

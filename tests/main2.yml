@@ -1,0 +1,50 @@
+---
+# Tasks for testing role
+
+- name: configure vagrant sandbox environment
+  hosts: localhost
+  roles:
+    - role: amtega.vagrant_presets
+  tasks:
+    - name: setup vagrant sandbox variables
+      set_fact:
+        vagrant_provisioner_vm_ansible_ssh_common_args: >-
+          -o UserKnownHostsFile=/dev/null
+          -o StrictHostKeyChecking=no
+        vagrant_provisioner_inventory: "./test_inventory"
+
+- name: test vagrant_provisioner with fedora 26
+  import_playbook: test_preset.yml
+  vars:
+    preset_name: "fedora_26"
+
+
+#
+# - name: test boxes and vms provisioning
+#   hosts: localhost
+#   roles:
+#     - role: amtega.vagrant_provisioner
+#       vagrant_provisioner_box_state: present
+#       vagrant_provisioner_vm_state: started
+#
+# - name: ping provisioned vms
+#   gather_facts: false
+#   hosts: vagrant_provisioner_vms
+#   become_user: vagrant
+#   tasks:
+#     - name: ping the vm
+#       ping:
+#     - name: shell into the vm
+#       shell: "cat /etc/*release*"
+#       changed_when: false
+#       register: shell_into_vm_result
+#
+# - name: test boxes and vms cleanup
+#   hosts: localhost
+#   roles:
+#     - role: amtega.vagrant_provisioner
+#       vagrant_provisioner_plugins:
+#         - name: vagrant-libvirt
+#           state: absent
+#       vagrant_provisioner_box_state: absent
+#       vagrant_provisioner_vm_state: absent

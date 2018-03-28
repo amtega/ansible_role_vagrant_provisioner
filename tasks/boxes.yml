@@ -52,26 +52,26 @@
           | default(vagrant_provisioner_box_state) == "present"
           and vagrant_provisioner_boxes_setup_result.stdout
               | default("")
-              | search("box you're attempting to add already exists")
+              is search("box you're attempting to add already exists")
         - >-
           async_item.box.1.state
           | default(vagrant_provisioner_box_state) == "absent"
           and vagrant_provisioner_boxes_setup_result.stdout
               | default("")
-              | search("error-exit,Vagrant::Errors::BoxRemoveNotFound")
+              is search("error-exit,Vagrant::Errors::BoxRemoveNotFound")
       changed_when: >-
         vagrant_provisioner_boxes_setup_result.rc | default(1) == 0
         and (async_item.box.1.state
              | default(vagrant_provisioner_box_state) == "present"
              and vagrant_provisioner_boxes_setup_result.stdout
                  | default("")
-                 | search("Successfully added box"))
+                 is search("Successfully added box"))
             or (async_item.box.1.state
                 | default(vagrant_provisioner_box_state) == "absent"
                 and vagrant_provisioner_boxes_setup_result.stdout
                     | default("")
-                    | search(",ui,info,Removing box"))
-      with_items: "{{ vagrant_provisioner_boxes_async_result.results }}"
+                    is search(",ui,info,Removing box"))
+      loop: "{{ vagrant_provisioner_boxes_async_result.results }}"
       loop_control:
         label: >-
           {{ async_item.box.1.name

@@ -10,7 +10,7 @@
       stat:
         path: "{{ vm_path }}"
       register: vagrant_provisioner_check_path_result
-      with_items: "{{ vms_state_absent }}"
+      loop: "{{ vms_state_absent }}"
       loop_control:
         label: "{{ vm.hostname }}"
         loop_var: vm
@@ -21,7 +21,7 @@
         state: directory
         force: yes
         mode: 0700
-      with_items: "{{ vms_state_started }}"
+      loop: "{{ vms_state_started }}"
       loop_control:
         label: "{{ vm.hostname }}"
         loop_var: vm
@@ -32,7 +32,7 @@
         dest: "{{ vm_path }}/Vagrantfile"
         mode: 0600
       register: vagrant_provisioner_create_vagrantfile_result
-      with_items: "{{ vms_state_started }}"
+      loop: "{{ vms_state_started }}"
       loop_control:
         label: "{{ vm.hostname }}"
         loop_var: vm
@@ -43,7 +43,7 @@
         chdir: "{{ vm_path }}"
       register: vagrant_provisioner_check_status_result
       changed_when: false
-      with_items: "{{ vms_state_started }}"
+      loop: "{{ vms_state_started }}"
       loop_control:
         label: "{{ vm.hostname }}"
         loop_var: vm
@@ -102,11 +102,11 @@
           or (async_item.vm.1.state
               | default(vagrant_provisioner_vm_state) == "absent"
               and vagrant_provisioner_vms_setup_result.stdout | default([])
-                  | search("action,destroy,start")
+                  is search("action,destroy,start")
               and vagrant_provisioner_vms_setup_result.stdout | default([])
-                  | search("action,destroy,end")
+                  is search("action,destroy,end")
               and not vagrant_provisioner_vms_setup_result.stdout | default([])
-                  | search("Domain is not created"))
+                  is search("Domain is not created"))
       failed_when:
           (async_item.vm.1.state
            | default(vagrant_provisioner_vm_state) == "started"
@@ -118,7 +118,7 @@
                           | default([])))
           or 'error-exit'
              in vagrant_provisioner_vms_setup_result.stdout | default([])
-      with_items: "{{ vagrant_provisioner_vms_async_result.results }}"
+      loop: "{{ vagrant_provisioner_vms_async_result.results }}"
       loop_control:
         label: >-
           {{ async_item.vm.1.hostname
@@ -138,7 +138,7 @@
       args:
         chdir: "{{ vm_path }}"
       changed_when: false
-      with_items: "{{ vms_state_started }}"
+      loop: "{{ vms_state_started }}"
       loop_control:
         label: "{{ vm.hostname }}"
         loop_var: vm
@@ -235,7 +235,7 @@
       changed_when: false
       register: vagrant_provisioner_get_public_key_result
       check_mode: no
-      with_items: "{{ vms_state_started }}"
+      loop: "{{ vms_state_started }}"
       loop_control:
         label: "{{ vm.hostname }}"
         loop_var: vm
@@ -266,7 +266,7 @@
         path: "{{ indexed_vm_path }}"
         state: absent
         force: yes
-      when: not vagrant_provisioner_vms_setup_result.results[vm.0] | failed
+      when: not vagrant_provisioner_vms_setup_result.results[vm.0] is failed
       with_indexed_items: "{{ vms_state_absent | list }}"
       loop_control:
         label: "{{ vm.1.hostname }}"

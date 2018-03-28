@@ -1,0 +1,73 @@
+---
+
+# Test vagrant_provisioner role with a virtual machine preset
+
+- name: configure sandbox variables to test preset
+  hosts: localhost
+  tasks:
+    - name: setup list of virtual machines for the sanbox
+      set_fact:
+        vagrant_sandbox_vms: >-
+          {{ vagrant_presets_vms
+             | selectattr("name", "match", preset_name)
+             | list
+             | vagrant_presets_randomize_names }}
+
+- name: provisione sandbox to test preset
+  hosts: localhost
+  roles:
+    - role: amtega.vagrant_sandbox
+      vagrant_sandbox_boxes: "{{ vagrant_presets_boxes }}"
+      vagrant_sandbox_state: started
+      vagrant_sandbox_idempotence_test: false
+
+- name: setup boxes and virtual machines inside sandbox
+  hosts: vagrant_sandbox_vms
+  roles:
+    - role: amtega.virtualbox_engine
+
+    - role: amtega.vagrant_engine
+
+    - role: amtega.vagrant_provisioner
+      vagrant_provisioner_plugins:
+        - name: vagrant-libvirt
+          state: present
+      vagrant_provisioner_boxes: >-
+        {{ hostvars.localhost.vagrant_presets_boxes }}
+      vagrant_provisioner_box_state: present
+      vagrant_provisioner_vms: >-
+        {{ hostvars.localhost.vagrant_presets_vms
+           | selectattr("name", "match", preset_name)
+           | list
+           | vagrant_presets_randomize_names }}
+      vagrant_provisioner_vm_groups:
+        - vagrant_provisioner_vms_inside
+      vagrant_provisioner_vm_state: started
+
+- name: ping provisioned virtual machines inside sandbox
+  gather_facts: false
+  hosts: vagrant_provisioner_vms_inside
+  become_user: vagrant
+  tasks:
+    - name: ping the vm
+      ping:
+
+    - name: shell into the vm
+      shell: "cat /etc/*release*"
+      changed_when: false
+      register: shell_into_vm_result
+
+- name: cleanup boxes and virtual machines inside sandbox
+  hosts: vagrant_sandbox_vms
+  roles:
+    - role: amtega.vagrant_provisioner
+      vagrant_provisioner_box_state: absent
+      vagrant_provisioner_vm_state: absent
+
+- name: cleanup sandbox used to test preset
+  hosts: localhost
+  roles:
+    - role: amtega.vagrant_provisioner
+      vagrant_provisioner_vm_state: absent
+  tasks:
+    - meta: refresh_inventory

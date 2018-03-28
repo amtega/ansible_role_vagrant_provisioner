@@ -1,17 +1,18 @@
 ---
 # Tasks for testing role
 
-- name: load vagrant presets and configure testing environment
+- name: configure vagrant sandbox environment
   hosts: localhost
   roles:
     - role: amtega.vagrant_presets
   tasks:
-    - name: setup vagrant_provisioner variables
+    - name: setup vagrant sandbox variables
       set_fact:
         vagrant_provisioner_plugins:
           - name: vagrant-libvirt
             state: present
-        vagrant_provisioner_boxes: "{{ vagrant_presets_boxes }}"
+        vagrant_provisioner_boxes: >-
+          {{ vagrant_presets_boxes }}
         vagrant_provisioner_vms: >-
           {{ vagrant_presets_vms | vagrant_presets_randomize_names }}
         vagrant_provisioner_vm_ansible_ssh_common_args: >-

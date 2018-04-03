@@ -35,7 +35,7 @@ vagrant_provisioner_boxes: []
 # overwhelming the machine launching too many asynchronous provisioning
 # processes at the same time
 
-vagrant_provisioner_boxes_interleave_time: 1
+vagrant_provisioner_boxes_interleave_time: 2
 
 # The role tries to guess if it's necessary to build vagrant boxes. If this
 # variable is set to true build is forced
@@ -57,7 +57,7 @@ vagrant_provisioner_box_max_provisioning_time: 300
 # { name: "centos_7"            # Display name
 #   box: "centos_7"             # What box is the vm derived from
 #   state: started              # started or absent (to add remove the vm)
-#   hostname: "centos-7"        # DNS name of the vm#
+#   hostname: "centos-7"        # DNS name of the vm
 #   directory: "~/centos-7"     # Directory to store virtual vm
 #                               # Default is a subdirectory with hostname inside
 #                               # vagrant_provisioner_vms_directory
@@ -66,8 +66,8 @@ vagrant_provisioner_box_max_provisioning_time: 300
 #   groups:                     # Ansible groups to put vms in
 #    - vagrant_provisioner_vms
 #   playbook: "playbook.yml"    # Playbook to run after vm provisioning
-#   max_provisioning_time: 300  # Maximum time to provisione }
-#
+#   max_provisioning_time: 300  # Maximum time to provisione
+#   options: {}                 # Dictionary with extra raw vagrant options
 #
 #   # The vm also supports the following optional ansible behavioral inventory
 #   # parameters. The defaults values are indicated below.
@@ -104,6 +104,7 @@ vagrant_provisioner_vm_memory: 512
 vagrant_provisioner_vm_cpus: 1
 vagrant_provisioner_vm_groups: [ 'vagrant_provisioner_vms' ]
 vagrant_provisioner_vm_playbook: ""
+vagrant_provisioner_vm_options: {}
 vagrant_provisioner_vm_ansible_connection: ssh
 vagrant_provisioner_vm_ansible_user: vagrant
 vagrant_provisioner_vm_ansible_ssh_pass: vagrant
@@ -130,7 +131,7 @@ vagrant_provisioner_vms_directory: "~/.vagrant"
 # overwhelming the machine launching too many asynchronous provisioning
 # processes at the same time
 
-vagrant_provisioner_vms_interleave_time: 1
+vagrant_provisioner_vms_interleave_time: 4
 
 # If defined, this variable tells to role to create a minimal inventory file
 # containing the deployed vms. Be warned that auth info is contained in

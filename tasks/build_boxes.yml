@@ -22,13 +22,13 @@
           register: vagrant_provisioner_package_boxes_result
           changed_when: >-
             vagrant_provisioner_package_boxes_result.stdout
-            | search("action,package,end")
+            is search("action,package,end")
           failed_when: >-
             vagrant_provisioner_package_boxes_result.rc != 0
             or (not vagrant_provisioner_package_boxes_result.stdout
-                    | search("action,package,end")
+                    is search("action,package,end")
                 and not vagrant_provisioner_package_boxes_result.stdout
-                        | search("package as already exists") )
+                        is search("package as already exists") )
           with_indexed_items: "{{ vagrant_provisioner_boxes_vms }}"
           loop_control:
             loop_var: vm
@@ -44,13 +44,13 @@
           register: vagrant_provisioner_add_built_boxes_result
           changed_when: >-
             vagrant_provisioner_add_built_boxes_result.stdout
-            | search("box,ui,success")
+            is search("box,ui,success")
           failed_when: >-
             not vagrant_provisioner_add_built_boxes_result.stdout
-                | search("box,ui,success")
+                is search("box,ui,success")
           when: >-
               vagrant_provisioner_package_boxes_result.results[vm.0]
-              | changed
+              is changed
           with_indexed_items: "{{ vagrant_provisioner_boxes_vms }}"
           loop_control:
             loop_var: vm

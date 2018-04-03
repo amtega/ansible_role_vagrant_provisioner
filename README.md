@@ -4,8 +4,9 @@ This is an [Ansible](http://www.ansible.com) role to provisione vagrant boxes an
 
 ## Requirements
 
-- [Ansible 2.4+](http://docs.ansible.com/ansible/latest/intro_installation.html)
+- [Ansible 2.5+](http://docs.ansible.com/ansible/latest/intro_installation.html)
 - [Vagrant 2.0+](https://www.vagrantup.com/). You can use [amtega.vagrant_engine](https://galaxy.ansible.com/amtega/vagrant_engine/) role to setup it.
+- [Virtual Box 5.2](https://www.virtualbox.org). You can use [amtega.virtualbox_engine](https://galaxy.ansible.com/amtega/virtualbox_engine/) role to setup it.
 
 ## Role Variables
 

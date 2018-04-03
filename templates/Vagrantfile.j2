@@ -13,16 +13,19 @@ Vagrant.configure(2) do |config|
   config.vm.define "{{ vm.name }}"
   config.vm.hostname = "{{ vm.hostname }}"
   config.vm.synced_folder ".", "/vagrant", disabled: true
+
+{% for o in vm.options | default(vagrant_provisioner_vm_options) %}
+  {{ o }} = "{{ vm.options[o] }}"
+{% endfor %}
+
   config.vm.provider "{{ box.provider | default(vagrant_provisioner_box_provider) }}" do |provider|
     provider.name = "{{ vm.name }}"
-  	provider.memory = "{{ vm.memory | default(vagrant_provisioner_vm_memory) }}"
-  	provider.cpus = "{{ vm.cpus | default(vagrant_provisioner_vm_cpus) }}"
-
-  {%- set provider_options = box.provider_options | default(vagrant_provisioner_box_provider_options) %}
-
-  {% for o in provider_options %}
+    provider.memory = "{{ vm.memory | default(vagrant_provisioner_vm_memory) }}"
+    provider.cpus = "{{ vm.cpus | default(vagrant_provisioner_vm_cpus) }}"
+{% set provider_options = box.provider_options | default(vagrant_provisioner_box_provider_options) %}
+{% for o in provider_options %}
     provider.{{ o }} = "{{ provider_options[o] }}"
-  {% endfor %}
+{% endfor %}
   end
 
 {% if vm.playbook | default(vagrant_provisioner_vm_playbook) | length > 0 %}

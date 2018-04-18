@@ -1,0 +1,85 @@
+---
+# Setup vagrant boxes
+
+- block:
+    - name: launch vagrant asynchronous boxes provisioning
+      shell: >-
+        sleep {{ vagrant_provisioner_boxes_interleave_time * box.0 }}s ;
+        vagrant box
+        {{ vagrant_command }}
+        --provider
+        {{ box.1.provider | default(vagrant_provisioner_box_provider) }}
+        --machine-readable
+        {{ box.1.address }}
+        {{ (box.1.version
+            | default(vagrant_provisioner_box_version)
+            | length > 0)
+           | ternary('--box-version "'
+                     + box.1.version
+                       | default(vagrant_provisioner_box_version) + '"',
+                     "") }}
+      register: vagrant_provisioner_boxes_async_result
+      changed_when: false
+      with_indexed_items: "{{ vagrant_provisioner_boxes }}"
+      async: >-
+        {{ box.1.max_provisioning_time
+           | default(vagrant_provisioner_box_max_provisioning_time) }}
+      poll: 0
+      vars:
+        vagrant_command: >-
+          {{ (box.1.state | default(vagrant_provisioner_box_state) == "present")
+             | ternary("add", "remove --all --force") }}
+      loop_control:
+        label: >-
+          {{ box.1.name
+             + " "
+             + box.1.state | default(vagrant_provisioner_box_state) }}
+        loop_var: box
+
+    - name: check vagrant asynchronous boxes provisioning
+      async_status:
+        jid: "{{ async_item.ansible_job_id }}"
+      register: vagrant_provisioner_boxes_setup_result
+      failed_when:
+        - vagrant_provisioner_boxes_setup_result.rc | default(0) == 1
+        - >-
+          async_item.box.1.state
+          | default(vagrant_provisioner_box_state) == "present"
+          and vagrant_provisioner_boxes_setup_result.stdout
+              | default("")
+              is search("box you're attempting to add already exists")
+        - >-
+          async_item.box.1.state
+          | default(vagrant_provisioner_box_state) == "absent"
+          and vagrant_provisioner_boxes_setup_result.stdout
+              | default("")
+              is search("error-exit,Vagrant::Errors::BoxRemoveNotFound")
+      changed_when: >-
+        vagrant_provisioner_boxes_setup_result.rc | default(1) == 0
+        and (async_item.box.1.state
+             | default(vagrant_provisioner_box_state) == "present"
+             and vagrant_provisioner_boxes_setup_result.stdout
+                 | default("")
+                 is search("Successfully added box"))
+            or (async_item.box.1.state
+                | default(vagrant_provisioner_box_state) == "absent"
+                and vagrant_provisioner_boxes_setup_result.stdout
+                    | default("")
+                    is search(",ui,info,Removing box"))
+      loop: "{{ vagrant_provisioner_boxes_async_result.results }}"
+      loop_control:
+        label: >-
+          {{ async_item.box.1.name
+             + " "
+             + async_item.box.1.state
+               | default(vagrant_provisioner_box_state) }}
+        loop_var: async_item
+      until: vagrant_provisioner_boxes_setup_result.finished
+      retries: >-
+        {{ (async_item.max_provisioning_time
+            | default(vagrant_provisioner_box_max_provisioning_time)
+            / vagrant_provisioner_boxes_interleave_time) | int }}
+      delay: "{{ vagrant_provisioner_boxes_interleave_time }}"
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::boxes

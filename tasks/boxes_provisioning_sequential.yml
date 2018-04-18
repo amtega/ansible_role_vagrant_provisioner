@@ -1,0 +1,60 @@
+---
+# Setup vagrant boxes
+
+- block:
+    - name: sequential vagrant boxes deploy
+      shell: >-
+        vagrant box
+        {{ vagrant_command }}
+        --provider
+        {{ box.1.provider | default(vagrant_provisioner_box_provider) }}
+        --machine-readable
+        {{ box.1.address }}
+        {{ (box.1.version
+            | default(vagrant_provisioner_box_version)
+            | length > 0)
+           | ternary('--box-version "'
+                     + box.1.version
+                       | default(vagrant_provisioner_box_version) + '"',
+                     "") }}
+      register: vagrant_provisioner_boxes_setup_result
+      failed_when:
+        - vagrant_provisioner_boxes_setup_result.rc | default(0) == 1
+        - >-
+          box.1.state
+          | default(vagrant_provisioner_box_state) == "present"
+          and vagrant_provisioner_boxes_setup_result.stdout
+              | default("")
+              is search("box you're attempting to add already exists")
+        - >-
+          box.1.state
+          | default(vagrant_provisioner_box_state) == "absent"
+          and vagrant_provisioner_boxes_setup_result.stdout
+              | default("")
+              is search("error-exit,Vagrant::Errors::BoxRemoveNotFound")
+      changed_when: >-
+        vagrant_provisioner_boxes_setup_result.rc | default(1) == 0
+        and (box.1.state
+             | default(vagrant_provisioner_box_state) == "present"
+             and vagrant_provisioner_boxes_setup_result.stdout
+                 | default("")
+                 is search("Successfully added box"))
+            or (box.1.state
+                | default(vagrant_provisioner_box_state) == "absent"
+                and vagrant_provisioner_boxes_setup_result.stdout
+                    | default("")
+                    is search(",ui,info,Removing box"))
+      with_indexed_items: "{{ vagrant_provisioner_boxes }}"
+      vars:
+        vagrant_command: >-
+          {{ (box.1.state | default(vagrant_provisioner_box_state) == "present")
+             | ternary("add", "remove --all --force") }}
+      loop_control:
+        label: >-
+          {{ box.1.name
+             + " "
+             + box.1.state | default(vagrant_provisioner_box_state) }}
+        loop_var: box
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::boxes

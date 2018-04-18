@@ -1,0 +1,90 @@
+---
+# Setup vagrant vms
+
+- block:
+    - name: launch vagrant asynchronous virtual machines provisioning
+      shell: >-
+        sleep {{ (vm.1.state
+                  | default(vagrant_provisioner_vm_state) == "started")
+                 | ternary(vagrant_provisioner_vms_interleave_time * vm.0,
+                           0) }}s ;
+        vagrant --machine-readable
+        {{ (vm.1.state | default(vagrant_provisioner_vm_state) == "started")
+           | ternary("up", "destroy --force") }} | tee -a vagrant.log
+      args:
+        chdir: "{{ indexed_vm_path }}"
+        removes: >-
+          {{ (vm.1.state | default(vagrant_provisioner_vm_state) == "absent")
+             | ternary("Vagrantfile", "") }}
+      register: vagrant_provisioner_vms_async_result
+      when: >-
+        (vm.1.state | default(vagrant_provisioner_vm_state) == "started"
+         and ',state,running' not in vagrant_status[vm.0].stdout)
+        or (vm.1.state | default(vagrant_provisioner_vm_state) == "absent"
+            and vagrant_paths[vm.0].stat.isdir is defined
+                and vagrant_paths[vm.0].stat.isdir)
+      changed_when: false
+      with_indexed_items: "{{ vagrant_provisioner_vms }}"
+      async: >-
+        {{ vm.1.max_provisioning_time
+           | default(vagrant_provisioner_vm_max_provisioning_time) }}
+      poll: 0
+      loop_control:
+        label: >-
+          {{ vm.1.hostname
+             + " "
+             + vm.1.state | default(vagrant_provisioner_vm_state) }}
+        loop_var: vm
+      vars:
+        vagrant_status: "{{ vagrant_provisioner_check_status_result.results }}"
+        vagrant_paths: "{{ vagrant_provisioner_check_path_result.results }}"
+
+    - name: wait for vagrant asynchronous virtual machines provisioning
+      async_status:
+        jid: "{{ async_item.ansible_job_id }}"
+      register: vagrant_provisioner_vms_setup_result
+      when: async_item.ansible_job_id | default(0) > 0
+      changed_when:
+        - vagrant_provisioner_vms_setup_result.rc | default(-1) == 0
+        - >-
+          ( async_item.vm.1.state
+            | default(vagrant_provisioner_vm_state) == "started"
+            and ',action,up,start'
+                in vagrant_provisioner_vms_setup_result.stdout | default([])
+            and ',action,up,end'
+                in vagrant_provisioner_vms_setup_result.stdout | default([]))
+          or (async_item.vm.1.state
+              | default(vagrant_provisioner_vm_state) == "absent"
+              and vagrant_provisioner_vms_setup_result.stdout | default([])
+                  is search("action,destroy,start")
+              and vagrant_provisioner_vms_setup_result.stdout | default([])
+                  is search("action,destroy,end")
+              and not vagrant_provisioner_vms_setup_result.stdout | default([])
+                  is search("Domain is not created"))
+      failed_when:
+          (async_item.vm.1.state
+           | default(vagrant_provisioner_vm_state) == "started"
+           and (',ui,error,'
+                in vagrant_provisioner_vms_setup_result.stdout | default([])
+                or vagrant_provisioner_vms_setup_result.rc | default(0) != 0
+                or ',action,up,end'
+                   not in vagrant_provisioner_vms_setup_result.stdout
+                          | default([])))
+          or 'error-exit'
+             in vagrant_provisioner_vms_setup_result.stdout | default([])
+      loop: "{{ vagrant_provisioner_vms_async_result.results }}"
+      loop_control:
+        label: >-
+          {{ async_item.vm.1.hostname
+             + " "
+             + async_item.vm.1.state | default(vagrant_provisioner_vm_state) }}
+        loop_var: async_item
+      until: vagrant_provisioner_vms_setup_result.finished
+      retries: >-
+        {{ (async_item.vm.max_provisioning_time
+            | default(vagrant_provisioner_vm_max_provisioning_time)
+            / vagrant_provisioner_vms_interleave_time) | int }}
+      delay: "{{ vagrant_provisioner_vms_interleave_time }}"
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::vms

@@ -5,6 +5,11 @@
   hosts: localhost
   roles:
     - role: amtega.vagrant_presets
+      vagrant_presets_boxes_json_query: >-
+        [? (starts_with(name, `centos-7`))
+           || starts_with(name, `debian-9`)
+           || starts_with(name, `fedora-26`)
+           || starts_with(name, `fedora-27`) ]
   tasks:
     - name: setup vagrant sandbox variables
       set_fact:
@@ -15,21 +20,48 @@
           {{ vagrant_presets_boxes }}
         vagrant_provisioner_vms: >-
           {{ vagrant_presets_vms | vagrant_presets_randomize_names }}
-        vagrant_provisioner_vm_ansible_ssh_common_args: >-
-          -o UserKnownHostsFile=/dev/null
-          -o StrictHostKeyChecking=no
-        vagrant_provisioner_inventory: "./test_inventory"
+
+- name: setup software and config requirements in sandbox hosts
+  hosts: vagrant_provisioner_vms
+  serial: 1
+  roles:
+    - role: amtega.virtualbox_engine
+
+    - role: amtega.vagrant_engine
+
+    - role: amtega.vagrant_presets
+  tasks:
+    - name: configure vagrant_provisioner boxes
+      set_fact:
+        vagrant_provisioner_boxes:
+          - "{{ vagrant_presets_boxes | random }}"
+
+    - name: configure vagrant_provisioner vms
+      set_fact:
+        vagrant_provisioner_vms:
+          - >
+            {{ vagrant_presets_vms
+               selectattr("box",
+                          "equalto",
+                          vagrant_provisioner_boxes[0].name)
+               | list
+               | vagrant_presets_randomize_names }}
 
 - name: test boxes and vms provisioning
-  hosts: localhost
-  roles:
+  hosts: vagrant_provisioner_vms
+  serial: 1
+
     - role: amtega.vagrant_provisioner
+      vagrant_provisioner_boxes_provisioning_method: sequential
       vagrant_provisioner_box_state: present
+      vagrant_provisioner_vms_provisioning_method: sequential
       vagrant_provisioner_vm_state: started
+      vagrant_provisioner_vm_groups:
+        - vagrant_provisioner_vms_inner
 
 - name: ping provisioned vms
   gather_facts: false
-  hosts: vagrant_provisioner_vms
+  hosts: vagrant_provisioner_vms_inner
   become_user: vagrant
   tasks:
     - name: ping the vm
@@ -46,5 +78,7 @@
       vagrant_provisioner_plugins:
         - name: vagrant-libvirt
           state: absent
+      vagrant_provisioner_boxes_provisioning_method: asynchronous
       vagrant_provisioner_box_state: absent
+      vagrant_provisioner_vms_provisioning_method: asynchronous
       vagrant_provisioner_vm_state: absent

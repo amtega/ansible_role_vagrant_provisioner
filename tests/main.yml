@@ -20,6 +20,8 @@
           {{ vagrant_presets_boxes }}
         vagrant_provisioner_vms: >-
           {{ vagrant_presets_vms | vagrant_presets_randomize_names }}
+  tags:
+    - sandbox
 
 - name: setup software and config requirements in sandbox hosts
   hosts: vagrant_provisioner_vms
@@ -82,3 +84,11 @@
       vagrant_provisioner_box_state: absent
       vagrant_provisioner_vms_provisioning_method: asynchronous
       vagrant_provisioner_vm_state: absent
+
+- name: cleanup vagrant sandbox
+  hosts: localhost
+  roles:
+    - role: amtega.vagrant_sandbox
+      vagrant_sandbox_state: absent
+  tags:
+    - sandbox

@@ -49,10 +49,14 @@
              | select("search", ",box-name,")
              | map("regex_replace", ".*box-name,(.*)", "\1")
              | list }}
+        vagrant_provisioner_boxes_setup_name_attribute: >-
+          {{ (vagrant_provisioner_boxes_provisioning_method == "asynchronous")
+             | ternary("async_item.box.1.name", "box.1.name")
+          }}
         vagrant_provisioner_boxes_changed: >-
           {{ vagrant_provisioner_boxes_setup_result.results
              | select("changed")
-             | map(attribute="async_item.box.1.name")
+             | map(attribute=vagrant_provisioner_boxes_setup_name_attribute)
              | list }}
         vagrant_provisioner_boxes_undefined: >-
           {{ vagrant_provisioner_boxes

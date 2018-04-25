@@ -71,7 +71,7 @@ vagrant_provisioner_box_max_provisioning_time: 300
 #    - vagrant_provisioner_vms
 #   playbook: "playbook.yml"    # Playbook to run after vm provisioning
 #   max_provisioning_time: 300  # Maximum time to provisione
-#   options: {}                 # Dictionary with extra raw vagrant options
+#   options: []                 # List of strings with extra raw vagrant options
 #
 #   # The vm also supports the following optional ansible behavioral inventory
 #   # parameters. The defaults values are indicated below.
@@ -112,7 +112,7 @@ vagrant_provisioner_vm_memory: 768
 vagrant_provisioner_vm_cpus: 1
 vagrant_provisioner_vm_groups: [ 'vagrant_provisioner_vms' ]
 vagrant_provisioner_vm_playbook: ""
-vagrant_provisioner_vm_options: {}
+vagrant_provisioner_vm_options: []
 vagrant_provisioner_vm_ansible_connection: ssh
 vagrant_provisioner_vm_ansible_user: vagrant
 vagrant_provisioner_vm_ansible_ssh_pass: vagrant

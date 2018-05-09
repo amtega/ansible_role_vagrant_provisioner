@@ -1,0 +1,94 @@
+---
+# Get current containers facts
+
+- block:
+    - name: get vagrant virtual machines global status
+      shell: vagrant global-status | grep '/' | awk '{ print $1,$2,$3,$4,$5 }'
+      register: vagrant_provisioner_get_global_status_result
+      changed_when: false
+      check_mode: no
+
+    - name: get vagrant virtual machines ssh config
+      shell: vagrant ssh-config
+      args:
+        chdir: "{{ status.split(' ').4 }}"
+      when: vagrant_provisioner_get_global_status_result.stdout | length > 0
+      register: vagrant_provisioner_ssh_config_result
+      changed_when: false
+      loop: "{{ global_status }}"
+      loop_control:
+        label: "{{ status.split(' ').1 }}"
+        loop_var: status
+      check_mode: no
+      vars:
+        global_status: >-
+          {{ vagrant_provisioner_get_global_status_result.stdout_lines }}
+
+    - debug: var=test
+      vars:
+        test: "{{ lookup('template', 'facts.j2') | from_yaml }}"
+
+    - fail:
+
+    #
+    # - name: gather vagrant virtual machines ssh public keys
+    #   shell: >-
+    #     ssh-keyscan \
+    #     -T \
+    #     {{ vm.public_key_scan_timeout
+    #        | default(default_public_key_scan_timeout) }} \
+    #     -p {{ config.stdout_lines
+    #           | select("search", "Port")
+    #           | first
+    #           | regex_replace(".*Port (.*)", "\1")
+    #           | trim }} \
+    #     {{ ssh_config.stdout_lines
+    #        | select("search", "HostName")
+    #        | first
+    #        | regex_replace(".*HostName (.*)", "\1")
+    #        | trim }}
+    #   when: vagrant_provisioner_known_hosts_dest | length > 0
+    #   register: vagrant_provisioner_get_public_keys_result
+    #   changed_when: false
+    #   loop: "{{ ssh_configs }}"
+    #   loop_control:
+    #     label: >-
+    #       {{ ssh_config.stdout_lines
+    #          | select("search", "Host")
+    #          | first
+    #          | regex_replace(".*Host (.*)", "\1")
+    #          | trim }}
+    #     loop_var: config
+    #   check_mode: no
+    #   vars:
+    #     ssh_configs: >-
+    #       {{ vagrant_provisioner_ssh_config_result.results }}
+
+
+    # - debug: var=vagrant_provisioner_get_public_keys_result
+    #
+    # - fail:
+
+        # vms: "{{ lookup('template', 'facts.j2') | from_yaml }}"
+        # default_public_key_scan_timeout: >-
+        #   {{ vagrant_provisioner_vm_public_key_scan_timeout }}
+
+      # changed_when: false
+      # register: vagrant_provisioner_get_public_key_result
+      # check_mode: no
+      # loop: "{{ query('indexed_items', vms_state_started | list) }}"
+      # loop_control:
+      #   label: "{{ vm.1.hostname }}"
+      #   loop_var: vm
+
+    #
+    #
+    #
+    #
+    # - name: setup fact with containers ansible-playbook in-memory info
+    #   set_fact:
+    #     docker_provisioner_containers_facts: >-
+    #       {{ lookup('template', 'facts.j2') | from_yaml }}
+  tags:
+    - role::docker_provisioner
+    - role::docker_provisioner::containers

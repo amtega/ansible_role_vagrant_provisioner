@@ -1,0 +1,62 @@
+{% for vm in vagrant_provisioner_get_global_status_result.stdout_lines %}
+{% set fields=vm.split(" ") %}
+{% set name=fields.1 %}
+{% set ssh_config_result=vagrant_provisioner_ssh_config_result.results
+                         | selectattr("invocation.module_args.chdir",
+                                      "equalto",
+                                      fields.4)
+                         | list
+                         | first %}
+{% set ssh_config=ssh_config_result.stdout_lines %}
+{% set matching_vms=vagrant_provisioner_vms
+                    | selectattr("name", "equalto", name)
+                    | list %}
+{% if matching_vms | length > 0 %}
+{% set vm_attributes=matching_vms | first %}
+{% set matching_vm_found=true %}
+{% else %}
+{% set vm_attributes={} %}
+{% set matching_vm_found=false %}
+{% endif %}
+
+- name: "{{ name }}"
+
+{% if matching_vm_found %}
+  state: "{{ vm_attributes.state | default(vagrant_provisioner_vm_state) }}"
+  ansible_connection: "{{ vm_attributes.ansible_connection | default(vagrant_provisioner_vm_ansible_connection) }}"
+  ansible_host: "{{ ssh_config | select('search', 'HostName') | first | regex_replace('.*HostName (.*)', '\\1') | trim }}"
+  ansible_port: "{{ ssh_config | select('search', 'Port') | first| regex_replace('.*Port (.*)', '\\1') | trim }}"
+  ansible_user: "{{ vm_attributes.ansible_user | default(vagrant_provisioner_vm_ansible_user) }}"
+  ansible_ssh_private_key_file: "{{ vm_attributes.ansible_ssh_private_key_file | default(vagrant_provisioner_vm_ansible_ssh_private_key_file) | default(ssh_config | select('search', 'IdentityFile') | first | regex_replace('.*IdentityFile (.*)', '\\1')) }}"
+  ansible_ssh_pass: "{{ vm_attributes.ansible_ssh_pass | default(vagrant_provisioner_vm_ansible_ssh_pass) }}"
+  ansible_ssh_common_args: "{{ vm_attributes.ansible_ssh_common_args | default(vagrant_provisioner_vm_ansible_ssh_common_args) }}"
+  ansible_ssh_extra_args: "{{ vm_attributes.ansible_ssh_extra_args | default(vagrant_provisioner_vm_ansible_scp_extra_args) }}"
+  ansible_scp_extra_args: "{{ vm_attributes.ansible_scp_extra_args | default(vagrant_provisioner_vm_ansible_scp_extra_args) }}"
+  ansible_ssh_pipelining: "{{ vm_attributes.ansible_ssh_pipelining | default(vagrant_provisioner_vm_ansible_ssh_pipelining) }}"
+  ansible_ssh_executable: "{{ vm_attributes.ansible_ssh_executable | default(vagrant_provisioner_vm_ansible_ssh_executable) }}"
+  ansible_become: "{{ vm_attributes.ansible_become | default(vagrant_provisioner_vm_ansible_become) }}"
+  ansible_become_method: "{{ vm_attributes.ansible_become_method | default(vagrant_provisioner_vm_ansible_become_method) }}"
+  ansible_become_user: "{{ vm_attributes.ansible_become_user | default(vagrant_provisioner_vm_ansible_become_user) }}"
+  ansible_become_pass: "{{ vm_attributes.ansible_become_pass | default(vagrant_provisioner_vm_ansible_become_pass) }}"
+  ansible_become_exe: "{{ vm_attributes.ansible_become_exe | default(vagrant_provisioner_vm_ansible_become_exe) }}"
+  ansible_become_flags: "{{ vm_attributes.ansible_become_flags | default(vagrant_provisioner_vm_ansible_become_flags) }}"
+  ansible_python_interpreter: "{{ vm_attributes.ansible_python_interpreter | default(vagrant_provisioner_vm_ansible_python_interpreter) }}"
+  ansible_shell_executable: "{{ vm_attributes.ansible_shell_executable | default(vagrant_provisioner_vm_ansible_shell_executable) }}"
+{% else %}
+  state: "{% if fields.3 == "running" %}started{% else %}present{% endif %}"
+  ansible_host: "{{ ssh_config | select('search', 'HostName') | first | regex_replace('.*HostName (.*)', '\\1') | trim }}"
+  ansible_port: "{{ ssh_config | select('search', 'Port') | first| regex_replace('.*Port (.*)', '\\1') | trim }}"
+  ansible_ssh_private_key_file: "{{ ssh_config | select('search', 'IdentityFile') | first | regex_replace('.*IdentityFile (.*)', '\\1') }}"
+{% endif %}
+
+  groups:
+{% for group in vm_attributes.groups
+                | default((matching_vm_found)
+                          | ternary(vagrant_provisioner_vm_groups,
+                                    vagrant_provisioner_vm_groups_unmanaged)) %}
+    - {{ group }}
+{% endfor %}
+
+  vagrant_directory: "{{ fields.4 }}"
+
+{% endfor %}

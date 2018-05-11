@@ -58,8 +58,8 @@
         method: "{{ vagrant_provisioner_vms_provisioning_method }}"
         vagrant_provisioner_vms_provisioning_include: >-
           {{ (method == "asynchronous")
-             | ternary("vms_provisioning_asynchronous.yml",
-                       "vms_provisioning_sequential.yml") }}
+             | ternary("vms_asynchronous.yml",
+                       "vms_sequential.yml") }}
 
     # - name: get vagrant virtual machines ssh config
     #   shell: "vagrant ssh-config"

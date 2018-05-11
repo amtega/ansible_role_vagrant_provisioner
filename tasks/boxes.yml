@@ -12,8 +12,8 @@
         method: "{{ vagrant_provisioner_boxes_provisioning_method }}"
         vagrant_provisioner_boxes_provisioning_include: >-
           {{ (method == "asynchronous")
-             | ternary("boxes_provisioning_asynchronous.yml",
-                       "boxes_provisioning_sequential.yml") }}
+             | ternary("boxes_asynchronous.yml",
+                       "boxes_sequential.yml") }}
 
     - block:
         - name: build vagrant boxes

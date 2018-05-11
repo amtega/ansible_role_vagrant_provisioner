@@ -11,69 +11,140 @@
            || starts_with(name, `fedora-26`)
            || starts_with(name, `fedora-27`) ]
   tasks:
-    - name: setup vagrant sandbox variables
-      set_fact:
-        vagrant_provisioner_plugins:
-          - name: vagrant-libvirt
-            state: present
-        vagrant_provisioner_boxes: >-
-          {{ vagrant_presets_boxes }}
-        vagrant_provisioner_vms: >-
-          {{ vagrant_presets_vms | vagrant_presets_randomize_names }}
+    # - name: setup vagrant sandbox variables
+    #   set_fact:
+    #     vagrant_provisioner_plugins:
+    #       - name: vagrant-libvirt
+    #         state: present
+        # vagrant_provisioner_boxes: >-
+        #   {{ vagrant_presets_boxes }}
+        # vagrant_provisioner_vms: >-
+        #   {{ vagrant_presets_vms | vagrant_presets_randomize_names }}
+  tags:
+    - sandbox
+
+- name: run idempotence test
+  hosts: localhost
+  roles:
+    - role: amtega.vagrant_sandbox
+      vagrant_sandbox_state: started
   tags:
     - sandbox
 
 - name: setup software and config requirements in sandbox hosts
   hosts: vagrant_provisioner_vms
-  serial: 1
   roles:
     - role: amtega.virtualbox_engine
-
     - role: amtega.vagrant_engine
-
     - role: amtega.vagrant_presets
   tasks:
+    - name: install required packages
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - ansible
+        - sshpass
+
     - name: configure vagrant_provisioner boxes
       set_fact:
         vagrant_provisioner_boxes:
-          - "{{ vagrant_presets_boxes | random }}"
+          - name: debian-9-i386
+            address: koalephant/debian9-i386
+            distribution: Debian
+            distribution_version: 9
+            playbook: bootstrap_debian_i386.yml
+            customized_name: debian-9-i386-customized
 
     - name: configure vagrant_provisioner vms
       set_fact:
         vagrant_provisioner_vms:
-          - >
-            {{ vagrant_presets_vms
-               selectattr("box",
-                          "equalto",
-                          vagrant_provisioner_boxes[0].name)
-               | list
-               | vagrant_presets_randomize_names }}
+          - name: debian-9-1
+            hostname: debian-9-1
+            box: debian-9-i386-customized
+            ansible_user: vagrant
+            ansible_ssh_pass: vagrant
+            ansible_become: true
+            ansible_become_user: root
+            ansible_become_method: sudo
+            options:
+              - "config.ssh.forward_agent = true"
+              - "config.ssh.forward_x11 = true"
+          - name: debian-9-2
+            hostname: debian-9-2
+            box: debian-9-i386-customized
+            ansible_user: vagrant
+            ansible_ssh_pass: vagrant
+            ansible_become: true
+            ansible_become_user: root
+            ansible_become_method: sudo
+            options:
+              - "config.ssh.forward_agent = true"
+              - "config.ssh.forward_x11 = true"
+  tags:
+  - idempotence
 
-- name: test boxes and vms provisioning
+- name: test sequential boxes and vms provisioning
   hosts: vagrant_provisioner_vms
-  serial: 1
-
+  roles:
     - role: amtega.vagrant_provisioner
       vagrant_provisioner_boxes_provisioning_method: sequential
       vagrant_provisioner_box_state: present
       vagrant_provisioner_vms_provisioning_method: sequential
       vagrant_provisioner_vm_state: started
-      vagrant_provisioner_vm_groups:
-        - vagrant_provisioner_vms_inner
-
-- name: ping provisioned vms
-  gather_facts: false
-  hosts: vagrant_provisioner_vms_inner
-  become_user: vagrant
+      vagrant_provisioner_in_memory_inventory: false
+  vars:
+    vagrant_provisioner_inventory: /tmp/vagrant_inventory
   tasks:
-    - name: ping the vm
-      ping:
-    - name: shell into the vm
-      shell: "cat /etc/*release*"
+    - name: check provisioned virtual machines connection
+      shell: >-
+        ansible -m setup
+        -i {{ vagrant_provisioner_inventory }}
+        {{ vm.name }}
       changed_when: false
-      register: shell_into_vm_result
+      loop: >-
+        {{ vagrant_provisioner_vms_facts
+           | selectattr("groups.0", "equalto", "vagrant_provisioner_vms")
+           | list }}
+      loop_control:
+        loop_var: vm
+        label: >-
+          {{ vm.name }}
+          {{ vm.ansible_host }}:{{ vm.ansible_port }}
+  tags:
+    - idempotence
 
-- name: test boxes and vms cleanup
+- name: test async boxes and vms provisioning
+  hosts: vagrant_provisioner_vms
+  roles:
+    - role: amtega.vagrant_provisioner
+      vagrant_provisioner_boxes_provisioning_method: asynchronous
+      vagrant_provisioner_box_state: present
+      vagrant_provisioner_vms_provisioning_method: asynchronous
+      vagrant_provisioner_vm_state: started
+      vagrant_provisioner_in_memory_inventory: true
+  vars:
+    vagrant_provisioner_inventory: /tmp/vagrant_inventory
+  tasks:
+    - name: check provisioned virtual machines connection
+      shell: >-
+        ansible -m setup
+        -i {{ vagrant_provisioner_inventory }}
+        {{ vm.name }}
+      changed_when: false
+      loop: >-
+        {{ vagrant_provisioner_vms_facts
+           | selectattr("groups.0", "equalto", "vagrant_provisioner_vms")
+           | list }}
+      loop_control:
+        loop_var: vm
+        label: >-
+          {{ vm.name }}
+          {{ vm.ansible_host }}:{{ vm.ansible_port }}
+  tags:
+    - idempotence
+
+- name: test cleanup
   hosts: localhost
   roles:
     - role: amtega.vagrant_provisioner

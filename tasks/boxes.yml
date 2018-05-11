@@ -22,7 +22,7 @@
 
         - name: search temporary vms created to build boxes
           find:
-            paths: "{{ vagrant_provisioner_vms_directory | expanduser }}"
+            paths: "{{ vagrant_provisioner_vms_path | expanduser }}"
             recurse: yes
             patterns: >-
               {{ lookup('template', 'boxes_to_build.j2') | from_yaml

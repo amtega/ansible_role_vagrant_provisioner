@@ -62,9 +62,9 @@ vagrant_provisioner_box_max_provisioning_time: 300
 #   box: "centos_7"             # What box is the vm derived from
 #   state: started              # started or absent (to add remove the vm)
 #   hostname: "centos-7"        # DNS name of the vm
-#   directory: "~/centos-7"     # Directory to store virtual vm
+#   path: "~/centos-7"          # Directory to store virtual vm
 #                               # Default is a subdirectory with hostname inside
-#                               # vagrant_provisioner_vms_directory
+#                               # vagrant_provisioner_vms_path
 #   memory: 1024                # Virtual machine memory
 #   cpus: 1                     # Virtual machine number of CPUs
 #   groups:                     # Ansible groups to put vms in
@@ -142,7 +142,15 @@ vagrant_provisioner_vm_ansible_shell_executable: /bin/sh
 
 # Default base directory to store vagrant vms
 
-vagrant_provisioner_vms_directory: "~/.vagrant"
+vagrant_provisioner_vms_path: "~/.vagrant"
+
+# Generate ansible-playbook in-memory info from virtual machines with add_host
+# Take into account that add_host module bypasses the play host loop and only
+# runs once for all the hosts in the play. So, if you are managing several
+# docker engines in the play, you must disable this flag and  call the this role
+# again with this flag activated (and images/containers list empty)
+
+vagrant_provisioner_in_memory_inventory: true
 
 # Time to wait (in seconds) between vms provisioning start to avoid
 # overwhelming the machine launching too many asynchronous provisioning

@@ -4,55 +4,58 @@
 - block:
     - name: launch vagrant asynchronous virtual machines provisioning
       shell: >-
-        sleep {{ (vm.1.state
-                  | default(vagrant_provisioner_vm_state) == "started")
+        sleep {{ (vm_state == "started")
                  | ternary(vagrant_provisioner_vms_interleave_time * vm.0,
                            0) }}s ;
         vagrant --machine-readable
-        {{ (vm.1.state | default(vagrant_provisioner_vm_state) == "started")
+        {{ (vm_state == "started")
            | ternary("up", "destroy --force") }} | tee -a vagrant.log
       args:
-        chdir: "{{ indexed_vm_path }}"
-        removes: >-
-          {{ (vm.1.state | default(vagrant_provisioner_vm_state) == "absent")
-             | ternary("Vagrantfile", "") }}
+        chdir: "{{ vm_path }}"
+        removes: "{{ (vm_state == 'absent') | ternary('Vagrantfile', '') }}"
       register: vagrant_provisioner_vms_async_result
-      when: >-
-        (vm.1.state | default(vagrant_provisioner_vm_state) == "started"
-         and ',state,running' not in vagrant_status[vm.0].stdout)
-        or (vm.1.state | default(vagrant_provisioner_vm_state) == "absent"
-            and vagrant_paths[vm.0].stat.isdir is defined
-                and vagrant_paths[vm.0].stat.isdir)
       changed_when: false
-      with_indexed_items: "{{ vagrant_provisioner_vms }}"
+      when: >-
+        (vm_state == "started"
+         and vagrant_facts.state | default('') != "started")
+        or (vm_state == "absent" and vagrant_facts.vagrant_path is defined)
+      loop: "{{ query('indexed_items', vagrant_provisioner_vms) }}"
+      loop_control:
+        label: "{{ vm.1.hostname}} {{ vm_state }}"
+        loop_var: vm
       async: >-
         {{ vm.1.max_provisioning_time
            | default(vagrant_provisioner_vm_max_provisioning_time) }}
       poll: 0
-      loop_control:
-        label: >-
-          {{ vm.1.hostname
-             + " "
-             + vm.1.state | default(vagrant_provisioner_vm_state) }}
-        loop_var: vm
       vars:
-        vagrant_status: "{{ vagrant_provisioner_check_status_result.results }}"
-        vagrant_paths: "{{ vagrant_provisioner_check_path_result.results }}"
+        vm_state: "{{ vm.1.state | default(vagrant_provisioner_vm_state) }}"
+        vm_path: >-
+          {{ vm.1.directory
+             | default(vagrant_provisioner_vms_path | expanduser
+             + "/"
+             + vm.1.name) }}
+        vagrant_facts_filtered: >-
+          {{ vagrant_provisioner_vms_facts
+             | selectattr("name", "equalto", vm.1.name)
+             | list }}
+        vagrant_facts: >-
+          {{ (vagrant_facts_filtered | length > 0)
+             | ternary(vagrant_facts_filtered | first, {}) }}
 
     - name: wait for vagrant asynchronous virtual machines provisioning
       async_status:
         jid: "{{ async_item.ansible_job_id }}"
-      register: vagrant_provisioner_vms_setup_result
       when: async_item.ansible_job_id | default(0) > 0
+      register: vagrant_provisioner_vms_setup_result
       changed_when:
         - vagrant_provisioner_vms_setup_result.rc | default(-1) == 0
         - >-
-          ( async_item.vm.1.state
-            | default(vagrant_provisioner_vm_state) == "started"
-            and ',action,up,start'
-                in vagrant_provisioner_vms_setup_result.stdout | default([])
-            and ',action,up,end'
-                in vagrant_provisioner_vms_setup_result.stdout | default([]))
+          (async_item.vm.1.state
+           | default(vagrant_provisioner_vm_state) == "started"
+           and ',action,up,start'
+               in vagrant_provisioner_vms_setup_result.stdout | default([])
+           and ',action,up,end'
+               in vagrant_provisioner_vms_setup_result.stdout | default([]))
           or (async_item.vm.1.state
               | default(vagrant_provisioner_vm_state) == "absent"
               and vagrant_provisioner_vms_setup_result.stdout | default([])

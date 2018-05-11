@@ -44,7 +44,7 @@
                 and vagrant_provisioner_boxes_setup_result.stdout
                     | default("")
                     is search(",ui,info,Removing box"))
-      with_indexed_items: "{{ vagrant_provisioner_boxes }}"
+      loop: "{{ query('indexed_items', vagrant_provisioner_boxes) }}"
       vars:
         vagrant_command: >-
           {{ (box.1.state | default(vagrant_provisioner_box_state) == "present")

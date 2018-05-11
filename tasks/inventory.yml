@@ -3,11 +3,12 @@
 
 - name: save inventory file with the deployed vms
   template:
-    src: inventory.j2
+    src: inventory.yml.j2
     dest: "{{ vagrant_provisioner_inventory }}"
     backup: no
   when: vagrant_provisioner_inventory | default("") | length > 0
   vars:
+    inventory: "{{ vagrant_provisioner_vms_facts }}"
     inventory_vars:
       - ansible_connection
       - ansible_host

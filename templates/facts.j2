@@ -1,3 +1,5 @@
+{% if vagrant_provisioner_get_global_status_result.stdout_lines | length > 0 %}
+
 {% for vm in vagrant_provisioner_get_global_status_result.stdout_lines %}
 {% set fields=vm.split(" ") %}
 {% set name=fields.1 %}
@@ -42,11 +44,33 @@
   ansible_become_flags: "{{ vm_attributes.ansible_become_flags | default(vagrant_provisioner_vm_ansible_become_flags) }}"
   ansible_python_interpreter: "{{ vm_attributes.ansible_python_interpreter | default(vagrant_provisioner_vm_ansible_python_interpreter) }}"
   ansible_shell_executable: "{{ vm_attributes.ansible_shell_executable | default(vagrant_provisioner_vm_ansible_shell_executable) }}"
+  vagrant_path: "{{ vm_attributes.path | default(vagrant_provisioner_vms_path) | expanduser }}/{{ name }}"
 {% else %}
   state: "{% if fields.3 == "running" %}started{% else %}present{% endif %}"
   ansible_host: "{{ ssh_config | select('search', 'HostName') | first | regex_replace('.*HostName (.*)', '\\1') | trim }}"
   ansible_port: "{{ ssh_config | select('search', 'Port') | first| regex_replace('.*Port (.*)', '\\1') | trim }}"
   ansible_ssh_private_key_file: "{{ ssh_config | select('search', 'IdentityFile') | first | regex_replace('.*IdentityFile (.*)', '\\1') }}"
+
+{% if vagrant_provisioner_check_vms_paths_result is not defined %}
+  vagrant_path: "{{ fields.4 }}"
+{% else %}
+{% set path_status=vagrant_provisioner_check_vms_paths_result.results
+                   | selectattr("vm.name", "equalto", name)
+                   | first %}
+{% if path_status.stat.isdir %}
+  vagrant_path: "{{ path_status.stat.path }}"
+{% endif %}
+
+{% endif %}
+
+{% endif %}
+
+{% if vagrant_provisioner_get_public_keys_result is defined
+      and vagrant_provisioner_get_public_keys_result.results is defined %}
+  ssh_public_keys: "{{ vagrant_provisioner_get_public_keys_result.results
+                       | selectattr('vm.name', 'equalto', name)
+                       | sum(attribute='stdout_lines', start=[])
+                       | join('\\n') }}"
 {% endif %}
 
   groups:
@@ -57,6 +81,8 @@
     - {{ group }}
 {% endfor %}
 
-  vagrant_directory: "{{ fields.4 }}"
-
 {% endfor %}
+
+{% else %}
+[]
+{% endif %}

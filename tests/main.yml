@@ -10,16 +10,6 @@
            || starts_with(name, `debian-9`)
            || starts_with(name, `fedora-26`)
            || starts_with(name, `fedora-27`) ]
-  tasks:
-    # - name: setup vagrant sandbox variables
-    #   set_fact:
-    #     vagrant_provisioner_plugins:
-    #       - name: vagrant-libvirt
-    #         state: present
-        # vagrant_provisioner_boxes: >-
-        #   {{ vagrant_presets_boxes }}
-        # vagrant_provisioner_vms: >-
-        #   {{ vagrant_presets_vms | vagrant_presets_randomize_names }}
   tags:
     - sandbox
 
@@ -32,7 +22,7 @@
     - sandbox
 
 - name: setup software and config requirements in sandbox hosts
-  hosts: vagrant_provisioner_vms
+  hosts: vagrant_sandbox_vms
   roles:
     - role: amtega.virtualbox_engine
     - role: amtega.vagrant_engine
@@ -46,6 +36,12 @@
         - ansible
         - sshpass
 
+    - name: configure vagrant_provisioner plugins
+      set_fact:
+        vagrant_provisioner_plugins:
+          - name: vagrant-libvirt
+            state: present
+
     - name: configure vagrant_provisioner boxes
       set_fact:
         vagrant_provisioner_boxes:
@@ -56,7 +52,7 @@
             playbook: bootstrap_debian_i386.yml
             customized_name: debian-9-i386-customized
 
-    - name: configure vagrant_provisioner vms
+    - name: configure vagrant_provisioner virtual machines
       set_fact:
         vagrant_provisioner_vms:
           - name: debian-9-1
@@ -85,7 +81,7 @@
   - idempotence
 
 - name: test sequential boxes and vms provisioning
-  hosts: vagrant_provisioner_vms
+  hosts: vagrant_sandbox_vms
   roles:
     - role: amtega.vagrant_provisioner
       vagrant_provisioner_boxes_provisioning_method: sequential
@@ -115,7 +111,7 @@
     - idempotence
 
 - name: test async boxes and vms provisioning
-  hosts: vagrant_provisioner_vms
+  hosts: vagrant_sandbox_vms
   roles:
     - role: amtega.vagrant_provisioner
       vagrant_provisioner_boxes_provisioning_method: asynchronous

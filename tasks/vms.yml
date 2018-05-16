@@ -71,7 +71,7 @@
         vm_state: "{{ item.1.state | default(vagrant_provisioner_vm_state) }}"
       delegate_to: "{{ item.0 }}"
 
-    - name: associate inventory info to vagrant virtual machines
+    - name: associate inventory info to managed vagrant virtual machines
       local_action: add_host
       args:
         name: "{{ vm.name }}"
@@ -98,7 +98,30 @@
         ssh_public_keys: "{{ vm.ssh_public_keys | default('') }}"
       changed_when: false
       when: vagrant_provisioner_in_memory_inventory
-      loop: "{{ vagrant_provisioner_vms_facts }}"
+      loop: >-
+        {{ vagrant_provisioner_vms_facts
+           | selectattr("ansible_user", "defined")
+           | list }}
+      loop_control:
+        label: "{{ vm.name }} {{ vm.ansible_host }}:{{ vm.ansible_port }}"
+        loop_var: vm
+
+    - name: associate inventory info to unamaned vagrant virtual machines
+      local_action: add_host
+      args:
+        name: "{{ vm.name }}"
+        groups: "{{ vm.groups }}"
+        ansible_connection: "{{ vm.ansible_connection }}"
+        ansible_host: "{{ vm.ansible_host }}"
+        ansible_port: "{{ vm.ansible_port }}"
+        ansible_ssh_private_key_file: "{{ vm.ansible_ssh_private_key_file }}"
+        ssh_public_keys: "{{ vm.ssh_public_keys | default('') }}"
+      changed_when: false
+      when: vagrant_provisioner_in_memory_inventory
+      loop: >-
+        {{ vagrant_provisioner_vms_facts
+           | selectattr("ansible_user", "undefined")
+           | list }}
       loop_control:
         label: "{{ vm.name }} {{ vm.ansible_host }}:{{ vm.ansible_port }}"
         loop_var: vm

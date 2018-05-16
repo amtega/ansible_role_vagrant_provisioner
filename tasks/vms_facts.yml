@@ -16,7 +16,9 @@
       shell: vagrant ssh-config
       args:
         chdir: "{{ status.split(' ').4 }}"
-      when: vagrant_provisioner_get_global_status_result.stdout | length > 0
+      when:
+        - vagrant_provisioner_get_global_status_result.stdout | length > 0
+        - status.split(' ').3 == "running"
       register: vagrant_provisioner_ssh_config_result
       changed_when: false
       loop: "{{ global_status }}"
@@ -34,7 +36,7 @@
       register: vagrant_provisioner_check_vms_paths_result
       loop: "{{ vms }}"
       loop_control:
-        label: "{{ vm.name }} {{ vm.ansible_host }}:{{ vm.ansible_port }}"
+        label: "{{ vm.name }}"
         loop_var: vm
       check_mode: no
       vars:
@@ -51,7 +53,7 @@
       when: vagrant_provisioner_known_hosts_dest | length > 0
       register: vagrant_provisioner_get_public_keys_result
       changed_when: false
-      loop: "{{ vms }}"
+      loop: "{{ vms | selectattr("state", "started") | list }}
       loop_control:
         label: "{{ vm.name }} {{ vm.ansible_host }}:{{ vm.ansible_port }}"
         loop_var: vm

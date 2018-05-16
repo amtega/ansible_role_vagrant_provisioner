@@ -3,13 +3,18 @@
 {% for vm in vagrant_provisioner_get_global_status_result.stdout_lines %}
 {% set fields=vm.split(" ") %}
 {% set name=fields.1 %}
-{% set ssh_config_result=vagrant_provisioner_ssh_config_result.results
+{% set ssh_config_results_filtered=vagrant_provisioner_ssh_config_result.results
+                         | selectattr("invocation", "defined")
                          | selectattr("invocation.module_args.chdir",
                                       "equalto",
                                       fields.4)
-                         | list
-                         | first %}
+                         | list %}
+
+{% if ssh_config_results_filtered | length > 0 %}
+{% set ssh_config_result=ssh_config_results_filtered | first %}
 {% set ssh_config=ssh_config_result.stdout_lines %}
+{% endif %}
+
 {% set matching_vms=vagrant_provisioner_vms
                     | selectattr("name", "equalto", name)
                     | list %}
@@ -25,6 +30,8 @@
 
 {% if matching_vm_found %}
   state: "{{ vm_attributes.state | default(vagrant_provisioner_vm_state) }}"
+
+{% if ssh_config is defined %}
   ansible_connection: "{{ vm_attributes.ansible_connection | default(vagrant_provisioner_vm_ansible_connection) }}"
   ansible_host: "{{ ssh_config | select('search', 'HostName') | first | regex_replace('.*HostName (.*)', '\\1') | trim }}"
   ansible_port: "{{ ssh_config | select('search', 'Port') | first| regex_replace('.*Port (.*)', '\\1') | trim }}"
@@ -36,6 +43,8 @@
   ansible_scp_extra_args: "{{ vm_attributes.ansible_scp_extra_args | default(vagrant_provisioner_vm_ansible_scp_extra_args) }}"
   ansible_ssh_pipelining: "{{ vm_attributes.ansible_ssh_pipelining | default(vagrant_provisioner_vm_ansible_ssh_pipelining) }}"
   ansible_ssh_executable: "{{ vm_attributes.ansible_ssh_executable | default(vagrant_provisioner_vm_ansible_ssh_executable) }}"
+{% endif %}
+
   ansible_become: "{{ vm_attributes.ansible_become | default(vagrant_provisioner_vm_ansible_become) }}"
   ansible_become_method: "{{ vm_attributes.ansible_become_method | default(vagrant_provisioner_vm_ansible_become_method) }}"
   ansible_become_user: "{{ vm_attributes.ansible_become_user | default(vagrant_provisioner_vm_ansible_become_user) }}"
@@ -45,22 +54,30 @@
   ansible_python_interpreter: "{{ vm_attributes.ansible_python_interpreter | default(vagrant_provisioner_vm_ansible_python_interpreter) }}"
   ansible_shell_executable: "{{ vm_attributes.ansible_shell_executable | default(vagrant_provisioner_vm_ansible_shell_executable) }}"
   vagrant_path: "{{ vm_attributes.path | default(vagrant_provisioner_vms_path) | expanduser }}/{{ name }}"
+
 {% else %}
+
   state: "{% if fields.3 == "running" %}started{% else %}present{% endif %}"
+
+{% if ssh_config is defined %}
+  ansible_connection: "ssh"
   ansible_host: "{{ ssh_config | select('search', 'HostName') | first | regex_replace('.*HostName (.*)', '\\1') | trim }}"
   ansible_port: "{{ ssh_config | select('search', 'Port') | first| regex_replace('.*Port (.*)', '\\1') | trim }}"
   ansible_ssh_private_key_file: "{{ ssh_config | select('search', 'IdentityFile') | first | regex_replace('.*IdentityFile (.*)', '\\1') }}"
+{% endif %}
 
-{% if vagrant_provisioner_check_vms_paths_result is not defined %}
-  vagrant_path: "{{ fields.4 }}"
-{% else %}
+{% if vagrant_provisioner_check_vms_paths_result is defined
+      and vagrant_provisioner_check_vms_paths_result.results is defined %}
 {% set path_status=vagrant_provisioner_check_vms_paths_result.results
                    | selectattr("vm.name", "equalto", name)
                    | first %}
 {% if path_status.stat.isdir %}
   vagrant_path: "{{ path_status.stat.path }}"
+{% else %}
+  vagrant_path: "{{ fields.4 }}"
 {% endif %}
-
+{% else %}
+  vagrant_path: "{{ fields.4 }}"
 {% endif %}
 
 {% endif %}

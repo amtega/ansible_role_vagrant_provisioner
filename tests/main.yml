@@ -78,7 +78,7 @@
               - "config.ssh.forward_agent = true"
               - "config.ssh.forward_x11 = true"
   tags:
-  - idempotence
+    - idempotence
 
 - name: test sequential boxes and vms provisioning
   hosts: vagrant_sandbox_vms

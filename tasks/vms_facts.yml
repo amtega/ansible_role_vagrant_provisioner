@@ -53,7 +53,7 @@
       when: vagrant_provisioner_known_hosts_dest | length > 0
       register: vagrant_provisioner_get_public_keys_result
       changed_when: false
-      loop: "{{ vms | selectattr("state", "started") | list }}
+      loop: "{{ vms | selectattr('state', 'equalto', 'started') | list }}"
       loop_control:
         label: "{{ vm.name }} {{ vm.ansible_host }}:{{ vm.ansible_port }}"
         loop_var: vm

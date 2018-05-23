@@ -45,9 +45,8 @@
         or (vm_state == "absent" and vagrant_facts.vagrant_path is defined)
       loop: "{{ query('indexed_items', vagrant_provisioner_vms) }}"
       loop_control:
+        loop_var: vm
         label: "{{ vm.1.hostname}} {{ vm_state }}"
-        loop_var: vm
-        loop_var: vm
       vars:
         vm_state: "{{ vm.1.state | default(vagrant_provisioner_vm_state) }}"
         vm_path: >-

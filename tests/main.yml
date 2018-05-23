@@ -45,19 +45,20 @@
     - name: configure vagrant_provisioner boxes
       set_fact:
         vagrant_provisioner_boxes:
-          - name: debian-9-i386
-            address: koalephant/debian9-i386
-            distribution: Debian
-            distribution_version: 9
-            playbook: bootstrap_debian_i386.yml
-            customized_name: debian-9-i386-customized
+          - name: centos-6-i386
+            address: bento/centos-6.7-i386
+            distribution: CentOS
+            distribution_version: 6
+            playbook: /tmp/bootstrap.yml
+            customized_name: centos-6-i386-customized
 
     - name: configure vagrant_provisioner virtual machines
       set_fact:
         vagrant_provisioner_vms:
-          - name: debian-9-1
-            hostname: debian-9-1
-            box: debian-9-i386-customized
+          - name: centos-6-i386-1
+            hostname: centos-6-i386-1
+            box: centos-6-i386-customized
+            vm_memory: 128
             ansible_user: vagrant
             ansible_ssh_pass: vagrant
             ansible_become: true
@@ -66,9 +67,10 @@
             options:
               - "config.ssh.forward_agent = true"
               - "config.ssh.forward_x11 = true"
-          - name: debian-9-2
-            hostname: debian-9-2
-            box: debian-9-i386-customized
+          - name: centos-6-i386-2
+            hostname: centos-6-i386-2
+            box: centos-6-i386-customized
+            vm_memory: 128
             ansible_user: vagrant
             ansible_ssh_pass: vagrant
             ansible_become: true
@@ -77,6 +79,12 @@
             options:
               - "config.ssh.forward_agent = true"
               - "config.ssh.forward_x11 = true"
+
+    - name: setup bootstrap playbook
+      copy:
+        src: bootstrap.yml
+        dest: /tmp
+        mode: 0600
   tags:
     - idempotence
 

@@ -1,11 +1,14 @@
-{%- set box = vagrant_provisioner_boxes
-              | selectattr("name", "equalto", vm.box)
-              | first -%}
+{% set boxes_found = vagrant_provisioner_boxes | selectattr("name", "equalto", vm.box) | list %}
+{% if boxes_found | length > 0 %}
+{% set box = vagrant_provisioner_boxes | first %}
+{% else %}
+{% set box = vagrant_provisioner_boxes | selectattr("customized_name", "equalto", vm.box) | first %}
+{% endif %}
 Vagrant.configure(2) do |config|
 {% if box.playbook | default('') | length == 0 or box.name == vm.name %}
   config.vm.box = "{{ box.address }}"
 {% else %}
-  config.vm.box = "{{ box.name }}"
+  config.vm.box = "{{ vm.box }}"
 {% endif %}
 {% if box.version | default(vagrant_provisioner_box_version) | length > 0 %}
   config.vm.box_version = "{{ box.version | default(vagrant_provisioner_box_version) }}"

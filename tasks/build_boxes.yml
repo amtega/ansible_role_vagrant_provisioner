@@ -37,7 +37,7 @@
         - name: add built boxes to vagrant
           shell: >-
             vagrant box --machine-readable add --force
-            {{ vm.1.name }}
+            --name {{ vm.1.customized_name }}
             {{ vm.1.name }}.box | tee -a vagrant.log
           args:
             chdir: "{{ vm_path }}"
@@ -54,7 +54,7 @@
           loop: "{{ query('indexed_items', vagrant_provisioner_boxes_vms) }}"
           loop_control:
             loop_var: vm
-            label: "{{ vm.1.name }}"
+            label: "{{ vm.1.customized_name }}"
           vars:
             boxes: "{{ vagrant_provisioner_boxes_to_build }}"
       vars:

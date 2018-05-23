@@ -45,16 +45,17 @@
                     | default("")
                     is search(",ui,info,Removing box"))
       loop: "{{ query('indexed_items', vagrant_provisioner_boxes) }}"
-      vars:
-        vagrant_command: >-
-          {{ (box.1.state | default(vagrant_provisioner_box_state) == "present")
-             | ternary("add", "remove --all --force") }}
       loop_control:
+        loop_var: box
         label: >-
           {{ box.1.name
              + " "
              + box.1.state | default(vagrant_provisioner_box_state) }}
-        loop_var: box
+      vars:
+        vagrant_command: >-
+          {{ (box.1.state | default(vagrant_provisioner_box_state) == "present")
+             | ternary("add", "remove --all --force") }}
+
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::boxes

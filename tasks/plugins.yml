@@ -1,37 +1,36 @@
 ---
 # Setup vagrant plugins
 
-- name: get vagrant plugin list
-  shell: vagrant plugin list
-  changed_when: false
-  register: vagrant_provisioner_get_plugins_result
+- block:
+    - name: get vagrant plugin list
+      shell: vagrant plugin list
+      changed_when: false
+      register: vagrant_provisioner_get_plugins_result
 
-- name: setup vagrant plugins
-  shell: >-
-    vagrant plugin
-    {{ (plugin.state == "present") | ternary("install", "uninstall") }}
-    {{ plugin.name }}
-  register: vagrant_provisioner_plugin_setup_result
-  failed_when:
-    - >-
-      plugin.state == "present"
-      and not vagrant_provisioner_plugin_setup_result.stdout
-              is search("Installed the plugin .*" + plugin.name)
-    - >-
-      plugin.state == "absent"
-      and not vagrant_provisioner_plugin_setup_result.stdout
-              is search("Successfully uninstalled .*" + plugin.name)
-  when: >-
-    (plugin.state == "present"
-     and not vagrant_provisioner_get_plugins_result.stdout
-             is search(plugin.name))
-    or (plugin.state == "absent"
-        and vagrant_provisioner_get_plugins_result.stdout
-            is search(plugin.name))
-  loop: "{{ vagrant_provisioner_plugins }}"
-  loop_control:
-    label: "{{ plugin.name }}"
-    loop_var: plugin
+    - name: setup vagrant plugins
+      shell: >-
+        vagrant plugin
+        {{ (plugin.state == "present") | ternary("install", "uninstall") }}
+        {{ plugin.name }}
+      register: vagrant_provisioner_plugin_setup_result
+      failed_when:
+          plugin.state == "present"
+          and not vagrant_provisioner_plugin_setup_result.stdout
+                  is search("Installed the plugin .*" + plugin.name)
+          or plugin.state == "absent"
+             and not vagrant_provisioner_plugin_setup_result.stdout
+                     is search("Successfully uninstalled .*" + plugin.name)
+      when: >-
+        (plugin.state == "present"
+         and not vagrant_provisioner_get_plugins_result.stdout
+                 is search(plugin.name))
+        or (plugin.state == "absent"
+            and vagrant_provisioner_get_plugins_result.stdout
+                is search(plugin.name))
+      loop: "{{ vagrant_provisioner_plugins }}"
+      loop_control:
+        label: "{{ plugin.name }}"
+        loop_var: plugin
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::plugins

@@ -11,12 +11,11 @@ all:
     {{ group }}:
       hosts:
 {% for vm in inventory %}
-{% set vars = hostvars[vm.name] %}
 {% if group in vm.groups %}
         {{ vm.name }}:
-{% for v in inventory_vars %}
-{% if vars[v] | default('') | string | length > 0 %}
-          {{ v }}: "{{ vars[v] }}"
+{% for v in vm %}
+{% if vm[v] | default('') | string | length > 0 %}
+          {{ v }}: "{{ vm[v] }}"
 {% endif %}
 {% endfor %}
 {% endif %}

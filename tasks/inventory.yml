@@ -29,3 +29,6 @@
       - ansible_become_flags
       - ansible_python_interpreter
       - ansible_shell_executable
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::vms

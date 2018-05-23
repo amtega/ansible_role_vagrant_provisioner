@@ -55,7 +55,6 @@
         vagrant_command: >-
           {{ (box.1.state | default(vagrant_provisioner_box_state) == "present")
              | ternary("add", "remove --all --force") }}
-
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::boxes

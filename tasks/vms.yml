@@ -106,7 +106,7 @@
         label: "{{ vm.name }} {{ vm.ansible_host }}:{{ vm.ansible_port }}"
         loop_var: vm
 
-    - name: associate inventory info to unamaned vagrant virtual machines
+    - name: associate inventory info to unmanaged vagrant virtual machines
       local_action: add_host
       args:
         name: "{{ vm.name }}"

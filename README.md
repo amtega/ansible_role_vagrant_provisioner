@@ -87,5 +87,5 @@ GNU General Public License for more details or European Union Public License for
 
 ## Author Information
 
-- Daniel Sánchez Fábregas.
 - Juan Antonio Valiño García.
+- Daniel Sánchez Fábregas.

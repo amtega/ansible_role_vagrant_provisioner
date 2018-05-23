@@ -34,6 +34,7 @@
         state: present
       with_items:
         - ansible
+        - libvirt-devel
         - sshpass
 
     - name: configure vagrant_provisioner plugins

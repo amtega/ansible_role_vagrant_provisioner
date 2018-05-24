@@ -48,10 +48,8 @@
 
     - name: setup ssh known_hosts entries
       known_hosts:
-        name: >-
-          [{{ item.1.ansible_host}}]:{{ item.1.ansible_port}}
-        key: >-
-          {{ item.1.ssh_public_keys | default('') }}
+        name: "[{{ item.1.ansible_host }}]:{{ item.1.ansible_port }}"
+        key: "{{ item.1.ssh_public_keys | default('') }}"
         state: >-
           {{ (vm_state== "started")
              | ternary("present",

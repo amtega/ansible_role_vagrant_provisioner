@@ -20,7 +20,11 @@
                      "") }}
       register: vagrant_provisioner_boxes_async_result
       changed_when: false
-      loop: "{{ query('indexed_items', vagrant_provisioner_boxes) }}"
+      loop: >-
+        {{ query('indexed_items',
+           vagrant_provisioner_boxes
+           | selectattr("playbook", 'undefined')
+           | list) }}
       async: >-
         {{ box.1.max_provisioning_time
            | default(vagrant_provisioner_box_max_provisioning_time) }}

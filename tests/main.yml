@@ -56,7 +56,6 @@
             distribution: CentOS
             distribution_version: 6
             playbook: /tmp/bootstrap.yml
-            customized_name: centos-6-i386-customized
 
     - name: configure vagrant_provisioner virtual machines
       set_fact:

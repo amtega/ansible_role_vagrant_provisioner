@@ -17,7 +17,7 @@
 
     - block:
         - name: build vagrant boxes
-          include_tasks: build_boxes.yml
+          include_tasks: boxes_build.yml
           when: vagrant_provisioner_boxes_vms | length > 0
 
         - name: search temporary vms created to build boxes

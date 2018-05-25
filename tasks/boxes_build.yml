@@ -37,7 +37,7 @@
         - name: add built boxes to vagrant
           shell: >-
             vagrant box --machine-readable add --force
-            --name {{ vm.1.name }}
+            --name {{ vm.1.box.name }}
             {{ vm.1.name }}.box | tee -a vagrant.log
           args:
             chdir: "{{ vm_path }}"

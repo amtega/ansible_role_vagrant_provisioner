@@ -62,7 +62,7 @@
         vagrant_provisioner_vms:
           - name: centos-6-i386-1
             hostname: centos-6-i386-1
-            box: centos-6-i386-customized
+            box: centos-6-i386
             vm_memory: 128
             ansible_user: vagrant
             ansible_ssh_pass: vagrant

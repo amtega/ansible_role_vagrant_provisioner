@@ -1,10 +1,12 @@
+Vagrant.configure(2) do |config|
 {% if vm.box is not mapping %}
 {% set box = vagrant_provisioner_boxes | selectattr("name", "equalto", vm.box) | list | first %}
+  config.vm.box = "{{ box.name }}"
 {% else %}
 {% set box = vm.box %}
-{% endif %}
-Vagrant.configure(2) do |config|
   config.vm.box = "{{ box.address }}"
+{% endif %}
+
 {% if box.version | default(vagrant_provisioner_box_version) | length > 0 %}
   config.vm.box_version = "{{ box.version | default(vagrant_provisioner_box_version) }}"
 {% endif %}

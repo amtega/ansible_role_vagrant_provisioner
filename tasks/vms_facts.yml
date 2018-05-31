@@ -5,7 +5,7 @@
     - name: get vagrant virtual machines global status
       shell: >-
         vagrant global-status --prune
-        | grep -E '....... +.* +virtualbox|libvirt + .* + .*'
+        | grep -E '....... +.* +virtualbox|libvirt|vmware + .* + .*'
         | grep '/'
         | awk '{ print $1,$2,$3,$4,$5 }'
       register: vagrant_provisioner_get_global_status_result

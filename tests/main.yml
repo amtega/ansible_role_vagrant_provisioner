@@ -63,7 +63,7 @@
           - name: centos-6-i386-1
             hostname: centos-6-i386-1
             box: centos-6-i386
-            vm_memory: 128
+            memory: 128
             ansible_user: vagrant
             ansible_ssh_pass: vagrant
             ansible_become: true
@@ -74,8 +74,8 @@
               - "config.ssh.forward_x11 = true"
           - name: centos-6-i386-2
             hostname: centos-6-i386-2
-            box: centos-6-i386-customized
-            vm_memory: 128
+            box: centos-6-i386
+            memory: 128
             ansible_user: vagrant
             ansible_ssh_pass: vagrant
             ansible_become: true

@@ -2,11 +2,12 @@
 {% if box.name in vagrant_provisioner_boxes_changed
    or box.name not in vagrant_provisioner_boxes_found
    or vagrant_provisioner_boxes_force_build %}
-- name:  "{{ box.name }}"
-  box: "{{ box.name }}"
-  hostname: "{{ box.name | regex_replace("_", "-") }}"
+{% set name="tmp-" + box.name + "-" + 99999999 | random | string %}
+- name:  "{{ name }}"
+  box: {{ box | to_yaml }}
+  hostname: "{{ name | regex_replace("_", "-") }}"
 {% for attribute in box  %}
-{% if attribute not in ['name', 'box'] %}
+{% if attribute not in ['name', 'box', 'hostname'] %}
   {{ attribute }}: "{{ box[attribute] }}"
 {% endif %}
 {% endfor %}

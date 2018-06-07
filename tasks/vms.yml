@@ -2,18 +2,8 @@
 # Setup vagrant vms
 
 - block:
-    - name: refresh vagrant status
-      shell: vagrant global-status --prune
-      changed_when: false
-
-    - name: read vagrant virtual machines directories
-      stat:
-        path: "{{ vm_path }}"
-      register: vagrant_provisioner_check_path_result
-      loop: "{{ vms_state_absent }}"
-      loop_control:
-        label: "{{ vm.hostname }}"
-        loop_var: vm
+    - name: get current vms facts
+      import_tasks: vms_facts.yml
 
     - name: create vagrant virtual machines directories
       file:
@@ -37,246 +27,123 @@
         label: "{{ vm.hostname }}"
         loop_var: vm
 
-    - name: get vagrant virtual machines status
-      shell: "vagrant status --machine-readable"
-      args:
-        chdir: "{{ vm_path }}"
-      register: vagrant_provisioner_check_status_result
-      changed_when: false
-      loop: "{{ vms_state_started }}"
-      loop_control:
-        label: "{{ vm.hostname }}"
-        loop_var: vm
-
-    - name: launch vagrant asynchronous virtual machines provisioning
-      shell: >-
-        sleep {{ (vm.1.state
-                  | default(vagrant_provisioner_vm_state) == "started")
-                 | ternary(vagrant_provisioner_vms_interleave_time * vm.0,
-                           0) }}s ;
-        vagrant --machine-readable
-        {{ (vm.1.state | default(vagrant_provisioner_vm_state) == "started")
-           | ternary("up", "destroy --force") }} | tee -a vagrant.log
-      args:
-        chdir: "{{ indexed_vm_path }}"
-        removes: >-
-          {{ (vm.1.state | default(vagrant_provisioner_vm_state) == "absent")
-             | ternary("Vagrantfile", "") }}
-      register: vagrant_provisioner_vms_async_result
-      when: >-
-        (vm.1.state | default(vagrant_provisioner_vm_state) == "started"
-         and ',state,running' not in vagrant_status[vm.0].stdout)
-        or (vm.1.state | default(vagrant_provisioner_vm_state) == "absent"
-            and vagrant_paths[vm.0].stat.isdir is defined
-                and vagrant_paths[vm.0].stat.isdir)
-      changed_when: false
-      with_indexed_items: "{{ vagrant_provisioner_vms }}"
-      async: >-
-        {{ vm.1.max_provisioning_time
-           | default(vagrant_provisioner_vm_max_provisioning_time) }}
-      poll: 0
-      loop_control:
-        label: >-
-          {{ vm.1.hostname
-             + " "
-             + vm.1.state | default(vagrant_provisioner_vm_state) }}
-        loop_var: vm
+    - import_tasks: "{{ vagrant_provisioner_vms_provisioning_include }}"
       vars:
-        vagrant_status: "{{ vagrant_provisioner_check_status_result.results }}"
-        vagrant_paths: "{{ vagrant_provisioner_check_path_result.results }}"
+        method: "{{ vagrant_provisioner_vms_provisioning_method }}"
+        vagrant_provisioner_vms_provisioning_include: >-
+          {{ (method == "asynchronous")
+             | ternary("vms_asynchronous.yml",
+                       "vms_sequential.yml") }}
 
-    - name: wait for vagrant asynchronous virtual machines provisioning
-      async_status:
-        jid: "{{ async_item.ansible_job_id }}"
-      register: vagrant_provisioner_vms_setup_result
-      when: async_item.ansible_job_id | default(0) > 0
-      changed_when:
-        - vagrant_provisioner_vms_setup_result.rc | default(-1) == 0
-        - >-
-          ( async_item.vm.1.state
-            | default(vagrant_provisioner_vm_state) == "started"
-            and ',action,up,start'
-                in vagrant_provisioner_vms_setup_result.stdout | default([])
-            and ',action,up,end'
-                in vagrant_provisioner_vms_setup_result.stdout | default([]))
-          or (async_item.vm.1.state
-              | default(vagrant_provisioner_vm_state) == "absent"
-              and vagrant_provisioner_vms_setup_result.stdout | default([])
-                  is search("action,destroy,start")
-              and vagrant_provisioner_vms_setup_result.stdout | default([])
-                  is search("action,destroy,end")
-              and not vagrant_provisioner_vms_setup_result.stdout | default([])
-                  is search("Domain is not created"))
-      failed_when:
-          (async_item.vm.1.state
-           | default(vagrant_provisioner_vm_state) == "started"
-           and (',ui,error,'
-                in vagrant_provisioner_vms_setup_result.stdout | default([])
-                or vagrant_provisioner_vms_setup_result.rc | default(0) != 0
-                or ',action,up,end'
-                   not in vagrant_provisioner_vms_setup_result.stdout
-                          | default([])))
-          or 'error-exit'
-             in vagrant_provisioner_vms_setup_result.stdout | default([])
-      loop: "{{ vagrant_provisioner_vms_async_result.results }}"
-      loop_control:
-        label: >-
-          {{ async_item.vm.1.hostname
-             + " "
-             + async_item.vm.1.state | default(vagrant_provisioner_vm_state) }}
-        loop_var: async_item
-      until: vagrant_provisioner_vms_setup_result.finished
-      retries: >-
-        {{ (async_item.vm.max_provisioning_time
-            | default(vagrant_provisioner_vm_max_provisioning_time)
-            / vagrant_provisioner_vms_interleave_time) | int }}
-      delay: "{{ vagrant_provisioner_vms_interleave_time }}"
+    - name: refresh provisioned virtual machine facts
+      import_tasks: vms_facts.yml
 
-    - name: get vagrant virtual machines ssh config
-      shell: "vagrant ssh-config"
-      register: vagrant_provisioner_ssh_config_result
-      args:
-        chdir: "{{ vm_path }}"
-      changed_when: false
-      loop: "{{ vms_state_started }}"
-      loop_control:
-        label: "{{ vm.hostname }}"
-        loop_var: vm
-
-    - name: associate inventory info to vagrant virtual machines
-      add_host:
-        name: "{{ vm.1.hostname }}"
-        groups: >-
-          {{ vm.1.groups | default([]) + vagrant_provisioner_vm_groups }}
-        state: started
-        ansible_connection: >-
-          {{ vm.1.ansible_connection
-             | default(vagrant_provisioner_vm_ansible_connection) }}
-        ansible_host: >-
-          {{ ssh_configs[vm.0].stdout_lines
-             | select("search", "HostName")
-             | first
-             | regex_replace(".*HostName (.*)", "\1")
-             | trim }}
-        ansible_port: >-
-          {{ ssh_configs[vm.0].stdout_lines
-             | select("search", "Port")
-             | first
-             | regex_replace(".*Port (.*)", "\1")
-             | trim }}
-        ansible_user: >-
-          {{ vm.1.ansible_user
-             | default(vagrant_provisioner_vm_ansible_user) }}
-        ansible_ssh_pass: >-
-          {{ vm.1.ansible_ssh_pass
-             | default(vagrant_provisioner_vm_ansible_ssh_pass) }}
-        ansible_ssh_private_key_file: >-
-          {{ vm.1.ansible_ssh_private_key_file
-             | default(ssh_configs[vm.0].stdout
-                       | regex_replace(
-                       '^(?sm).*\n *IdentityFile *'
-                       + '(?P<identityfile>[^\n]+)\n.*$',
-                       '\1')) }}
-        ansible_ssh_common_args: >-
-          {{ vm.1.ansible_ssh_common_args
-            | default(vagrant_provisioner_vm_ansible_ssh_common_args) }}
-        ansible_scp_extra_args: >-
-          {{ vm.1.ansible_scp_extra_args
-             | default(vagrant_provisioner_vm_ansible_scp_extra_args) }}
-        ansible_ssh_extra_args: >-
-          {{ vm.1.ansible_ssh_extra_args
-             | default(vagrant_provisioner_vm_ansible_scp_extra_args) }}
-        ansible_ssh_pipelining: >-
-          {{ vm.1.ansible_ssh_pipelining
-             | default(vagrant_provisioner_vm_ansible_ssh_pipelining) }}
-        ansible_ssh_executable: >-
-          {{ vm.1.ansible_ssh_executable
-             | default(vagrant_provisioner_vm_ansible_ssh_executable) }}
-        ansible_become: >-
-          {{ vm.1.ansible_become
-             | default(vagrant_provisioner_vm_ansible_become) }}
-        ansible_become_method: >-
-          {{ vm.1.ansible_become_method
-             | default(vagrant_provisioner_vm_ansible_become_method) }}
-        ansible_become_user: >-
-          {{ vm.1.ansible_become_user
-             | default(vagrant_provisioner_vm_ansible_become_user) }}
-        ansible_become_pass: >-
-          {{ vm.1.ansible_become_pass
-             | default(vagrant_provisioner_vm_ansible_become_pass) }}
-        ansible_become_exe: >-
-          {{ vm.1.ansible_become_exe
-             | default(vagrant_provisioner_vm_ansible_become_exe) }}
-        ansible_become_flags: >-
-          {{ vm.1.ansible_become_flags
-             | default(vagrant_provisioner_vm_ansible_become_flags) }}
-        ansible_python_interpreter: >-
-          {{ vm.1.ansible_python_interpreter
-             | default(vagrant_provisioner_vm_ansible_python_interpreter) }}
-        ansible_shell_executable: >-
-          {{ vm.1.ansible_shell_executable
-             | default(vagrant_provisioner_vm_ansible_shell_executable) }}
-        vagrant_provisioner_vm_directory: >-
-          {{ indexed_vm_path }}
-      changed_when: false
-      with_indexed_items: "{{ vms_state_started | list }}"
-      vars:
-        ssh_configs: "{{ vagrant_provisioner_ssh_config_result.results }}"
-      loop_control:
-        label: >-
-          {{ vm.1.hostname
-             + " "
-             + ssh_configs[vm.0].stdout_lines[1][11:] }}
-        loop_var: vm
-
-    - name: gather vagrant virtual machines ssh public keys
-      shell: >-
-        ssh-keyscan -T 10 {{ hostvars[vm.hostname]['ansible_host'] }}
-      changed_when: false
-      register: vagrant_provisioner_get_public_key_result
-      check_mode: no
-      loop: "{{ vms_state_started }}"
-      loop_control:
-        label: "{{ vm.hostname }}"
-        loop_var: vm
-
-    - name: remove vagrant virtual machines old ssh known_hosts entries
-      known_hosts:
-        name: "{{ hostvars[vm.1.hostname]['ansible_host'] }}"
-        state: absent
-      with_indexed_items: "{{ vms_state_started | list }}"
-      loop_control:
-        label: "{{ vm.1.hostname }}"
-        loop_var: vm
-
-    - name: add ssh known_hosts entries for vms
-      known_hosts:
-        name: "{{ hostvars[vm.1.hostname]['ansible_host'] }}"
-        key: >-
-          {{ vagrant_provisioner_get_public_key_result.results[vm.0].stdout }}
-        state: present
-      with_indexed_items: "{{ vms_state_started | list }}"
-      vars:
-      loop_control:
-        label: "{{ vm.1.hostname }}"
-        loop_var: vm
-
-    - name: remove vagrant virtual machines directories
+    - name: create .ssh directory
       file:
-        path: "{{ indexed_vm_path }}"
+        path: "~/.ssh"
+        state: directory
+        mode: 0700
+      loop: "{{ vagrant_provisioner_known_hosts_dest }}"
+      delegate_to: "{{ item }}"
+
+    - name: setup ssh known_hosts entries
+      known_hosts:
+        name: "[{{ item.1.ansible_host }}]:{{ item.1.ansible_port }}"
+        key: "{{ item.1.ssh_public_keys | default('') }}"
+        state: >-
+          {{ (vm_state== "started")
+             | ternary("present",
+                       (vm_state == "stopped")
+                       | ternary("absent", item.1.state)) }}
+      loop: >-
+        {{ query(
+             'nested',
+              vagrant_provisioner_known_hosts_dest,
+              vagrant_provisioner_vms_facts
+              | list) }}
+      loop_control:
+        label: >-
+          {{ item.1.name }}
+          {{ item.1.ansible_host }}:{{ item.1.ansible_port }}
+      vars:
+        vm_state: "{{ item.1.state | default(vagrant_provisioner_vm_state) }}"
+      delegate_to: "{{ item.0 }}"
+
+    - name: associate inventory info to managed vagrant virtual machines
+      local_action: add_host
+      args:
+        name: "{{ vm.name }}"
+        groups: "{{ vm.groups }}"
+        ansible_connection: "{{ vm.ansible_connection }}"
+        ansible_host: "{{ vm.ansible_host }}"
+        ansible_port: "{{ vm.ansible_port }}"
+        ansible_user: "{{ vm.ansible_user }}"
+        ansible_ssh_pass: "{{ vm.ansible_ssh_pass }}"
+        ansible_ssh_private_key_file: "{{ vm.ansible_ssh_private_key_file }}"
+        ansible_ssh_common_args: "{{ vm.ansible_ssh_common_args }}"
+        ansible_scp_extra_args: "{{ vm.ansible_scp_extra_args }}"
+        ansible_ssh_extra_args: "{{ vm.ansible_ssh_extra_args }}"
+        ansible_ssh_pipelining: "{{ vm.ansible_ssh_pipelining }}"
+        ansible_ssh_executable: "{{ vm.ansible_ssh_executable }}"
+        ansible_become: "{{ vm.ansible_become }}"
+        ansible_become_method: "{{ vm.ansible_become_method }}"
+        ansible_become_user: "{{ vm.ansible_become_user }}"
+        ansible_become_pass: "{{ vm.ansible_become_pass }}"
+        ansible_become_exe: "{{ vm.ansible_become_exe }}"
+        ansible_become_flags: "{{ vm.ansible_become_flags }}"
+        ansible_python_interpreter: "{{ vm.ansible_python_interpreter }}"
+        ansible_shell_executable: "{{ vm.ansible_shell_executable }}"
+        ssh_public_keys: "{{ vm.ssh_public_keys | default('') }}"
+      changed_when: false
+      when: vagrant_provisioner_in_memory_inventory
+      loop: >-
+        {{ vagrant_provisioner_vms_facts
+           | selectattr("ansible_user", "defined")
+           | list }}
+      loop_control:
+        label: "{{ vm.name }} {{ vm.ansible_host }}:{{ vm.ansible_port }}"
+        loop_var: vm
+
+    - name: associate inventory info to unmanaged vagrant virtual machines
+      local_action: add_host
+      args:
+        name: "{{ vm.name }}"
+        groups: "{{ vm.groups }}"
+        ansible_connection: "{{ vm.ansible_connection }}"
+        ansible_host: "{{ vm.ansible_host }}"
+        ansible_port: "{{ vm.ansible_port }}"
+        ansible_ssh_private_key_file: "{{ vm.ansible_ssh_private_key_file }}"
+        ssh_public_keys: "{{ vm.ssh_public_keys | default('') }}"
+      changed_when: false
+      when: vagrant_provisioner_in_memory_inventory
+      loop: >-
+        {{ vagrant_provisioner_vms_facts
+           | selectattr("ansible_user", "undefined")
+           | list }}
+      loop_control:
+        label: "{{ vm.name }} {{ vm.ansible_host }}:{{ vm.ansible_port }}"
+        loop_var: vm
+
+    - name: remove vagrant absent virtual machines directories
+      file:
+        path: "{{ vm_path }}"
         state: absent
         force: yes
-      when: not vagrant_provisioner_vms_setup_result.results[vm.0] is failed
-      with_indexed_items: "{{ vms_state_absent | list }}"
+      when: >-
+        not vm.name in
+            vagrant_provisioner_vms_setup_result.results
+            | select("failed")
+            | selectattr("vm.name")
+            | list
+      loop: "{{ vms_state_absent }}"
       loop_control:
-        label: "{{ vm.1.hostname }}"
+        label: "{{ vm.name }}"
         loop_var: vm
   vars:
     vms_state_undefined: >-
       {{ vagrant_provisioner_vms
          | selectattr("state", "undefined")
          | list }}
-
     vms_state_started: >-
       {{ vagrant_provisioner_vms
          | difference(vms_state_undefined)
@@ -284,7 +151,6 @@
          | list
          + (vagrant_provisioner_vm_state == "started")
            | ternary(vms_state_undefined, []) }}
-
     vms_state_absent: >-
       {{ vagrant_provisioner_vms
          | difference(vms_state_undefined)
@@ -292,18 +158,11 @@
          | list
          + (vagrant_provisioner_vm_state == "absent")
            | ternary(vms_state_undefined, []) }}
-
     vm_path: >-
       {{ vm.directory
-         | default(vagrant_provisioner_vms_directory | expanduser
+         | default(vagrant_provisioner_vms_path | expanduser
                    + "/"
                    + vm.name) }}
-
-    indexed_vm_path: >-
-      {{ vm.1.directory
-         | default(vagrant_provisioner_vms_directory | expanduser
-                   + "/"
-                   + vm.1.name) }}
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::vms

@@ -7,96 +7,30 @@
       changed_when: false
       register: vagrant_provisioner_get_boxes_result
 
-    - name: launch vagrant asynchronous boxes provisioning
-      shell: >-
-        sleep {{ vagrant_provisioner_boxes_interleave_time * box.0 }}s ;
-        vagrant box
-        {{ vagrant_command }}
-        --provider
-        {{ box.1.provider | default(vagrant_provisioner_box_provider) }}
-        --machine-readable
-        {{ box.1.address }}
-        {{ (box.1.version
-            | default(vagrant_provisioner_box_version)
-            | length > 0)
-           | ternary('--box-version "'
-                     + box.1.version
-                       | default(vagrant_provisioner_box_version) + '"',
-                     "") }}
-      register: vagrant_provisioner_boxes_async_result
-      changed_when: false
-      with_indexed_items: "{{ vagrant_provisioner_boxes }}"
-      async: >-
-        {{ box.1.max_provisioning_time
-           | default(vagrant_provisioner_box_max_provisioning_time) }}
-      poll: 0
+    - import_tasks: "{{ vagrant_provisioner_boxes_provisioning_include }}"
       vars:
-        vagrant_command: >-
-          {{ (box.1.state | default(vagrant_provisioner_box_state) == "present")
-             | ternary("add", "remove --all --force") }}
-      loop_control:
-        label: >-
-          {{ box.1.name
-             + " "
-             + box.1.state | default(vagrant_provisioner_box_state) }}
-        loop_var: box
-
-    - name: check vagrant asynchronous boxes provisioning
-      async_status:
-        jid: "{{ async_item.ansible_job_id }}"
-      register: vagrant_provisioner_boxes_setup_result
-      failed_when:
-        - vagrant_provisioner_boxes_setup_result.rc | default(0) == 1
-        - >-
-          async_item.box.1.state
-          | default(vagrant_provisioner_box_state) == "present"
-          and vagrant_provisioner_boxes_setup_result.stdout
-              | default("")
-              is search("box you're attempting to add already exists")
-        - >-
-          async_item.box.1.state
-          | default(vagrant_provisioner_box_state) == "absent"
-          and vagrant_provisioner_boxes_setup_result.stdout
-              | default("")
-              is search("error-exit,Vagrant::Errors::BoxRemoveNotFound")
-      changed_when: >-
-        vagrant_provisioner_boxes_setup_result.rc | default(1) == 0
-        and (async_item.box.1.state
-             | default(vagrant_provisioner_box_state) == "present"
-             and vagrant_provisioner_boxes_setup_result.stdout
-                 | default("")
-                 is search("Successfully added box"))
-            or (async_item.box.1.state
-                | default(vagrant_provisioner_box_state) == "absent"
-                and vagrant_provisioner_boxes_setup_result.stdout
-                    | default("")
-                    is search(",ui,info,Removing box"))
-      loop: "{{ vagrant_provisioner_boxes_async_result.results }}"
-      loop_control:
-        label: >-
-          {{ async_item.box.1.name
-             + " "
-             + async_item.box.1.state
-               | default(vagrant_provisioner_box_state) }}
-        loop_var: async_item
-      until: vagrant_provisioner_boxes_setup_result.finished
-      retries: >-
-        {{ (async_item.max_provisioning_time
-            | default(vagrant_provisioner_box_max_provisioning_time)
-            / vagrant_provisioner_boxes_interleave_time) | int }}
-      delay: "{{ vagrant_provisioner_boxes_interleave_time }}"
+        method: "{{ vagrant_provisioner_boxes_provisioning_method }}"
+        vagrant_provisioner_boxes_provisioning_include: >-
+          {{ (method == "asynchronous")
+             | ternary("boxes_asynchronous.yml",
+                       "boxes_sequential.yml") }}
 
     - block:
+        - name: setup fact with virtual machines required to build boxes
+          set_fact:
+            vagrant_provisioner_boxes_vms: >-
+              {{ lookup('template', 'boxes_vms.j2') | from_yaml }}
+
         - name: build vagrant boxes
-          include_tasks: build_boxes.yml
+          include_tasks: boxes_build.yml
           when: vagrant_provisioner_boxes_vms | length > 0
 
         - name: search temporary vms created to build boxes
           find:
-            paths: "{{ vagrant_provisioner_vms_directory | expanduser }}"
+            paths: "{{ vagrant_provisioner_vms_path | expanduser }}"
             recurse: yes
             patterns: >-
-              {{ lookup('template', 'boxes_to_build.j2') | from_yaml
+              {{ vagrant_provisioner_boxes_vms
                  | map(attribute="name")
                  | map("basename")
                  | map("regex_replace", "(.*)", "^\1$")
@@ -120,10 +54,14 @@
              | select("search", ",box-name,")
              | map("regex_replace", ".*box-name,(.*)", "\1")
              | list }}
+        vagrant_provisioner_boxes_setup_name_attribute: >-
+          {{ (vagrant_provisioner_boxes_provisioning_method == "asynchronous")
+             | ternary("async_item.box.1.name", "box.1.name")
+          }}
         vagrant_provisioner_boxes_changed: >-
           {{ vagrant_provisioner_boxes_setup_result.results
              | select("changed")
-             | map(attribute="async_item.box.1.name")
+             | map(attribute=vagrant_provisioner_boxes_setup_name_attribute)
              | list }}
         vagrant_provisioner_boxes_undefined: >-
           {{ vagrant_provisioner_boxes
@@ -138,9 +76,6 @@
              | list
              + (vagrant_provisioner_box_state == "present")
                | ternary(vagrant_provisioner_boxes_undefined, []) }}
-        vagrant_provisioner_boxes_vms: >-
-          {{ lookup('template', 'boxes_to_build.j2') | from_yaml }}
-
         vagrant_provisioner_boxes_vms_created: >-
           {{ vagrant_sandbox_search_boxes_vms_result.files
              | selectattr("path", "defined")

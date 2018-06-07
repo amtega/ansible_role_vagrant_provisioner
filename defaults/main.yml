@@ -31,9 +31,13 @@ vagrant_provisioner_plugins: []
 
 vagrant_provisioner_boxes: []
 
+# Indicate boxes provisioning method. Can be asynchronous or sequential
+
+vagrant_provisioner_boxes_provisioning_method: sequential
+
 # Time to wait (in seconds) between boxes provisioning start to avoid
 # overwhelming the machine launching too many asynchronous provisioning
-# processes at the same time
+# processes at the same time when provisioning is asynchronous
 
 vagrant_provisioner_boxes_interleave_time: 2
 
@@ -49,7 +53,7 @@ vagrant_provisioner_box_version: ""
 vagrant_provisioner_box_provider: "virtualbox"
 vagrant_provisioner_box_provider_options: {}
 vagrant_provisioner_box_state: "present"
-vagrant_provisioner_box_max_provisioning_time: 300
+vagrant_provisioner_box_max_provisioning_time: 600
 
 # List of dicts with the virtual machines (vms) to provision. The dicts must
 # have the following format:
@@ -58,16 +62,20 @@ vagrant_provisioner_box_max_provisioning_time: 300
 #   box: "centos_7"             # What box is the vm derived from
 #   state: started              # started or absent (to add remove the vm)
 #   hostname: "centos-7"        # DNS name of the vm
-#   directory: "~/centos-7"     # Directory to store virtual vm
+#   path: "~/centos-7"          # Directory to store virtual vm
 #                               # Default is a subdirectory with hostname inside
-#                               # vagrant_provisioner_vms_directory
+#                               # vagrant_provisioner_vms_path
 #   memory: 1024                # Virtual machine memory
 #   cpus: 1                     # Virtual machine number of CPUs
 #   groups:                     # Ansible groups to put vms in
 #    - vagrant_provisioner_vms
+#   groups_unmanaged:           # List of groups where to add the discovered
+#    - unmanaged_vms            # virtual machines that are not in the list
+#                               # to provisione
 #   playbook: "playbook.yml"    # Playbook to run after vm provisioning
 #   max_provisioning_time: 300  # Maximum time to provisione
-#   options: {}                 # Dictionary with extra raw vagrant options
+#   public_key_scan_timeout: 5  # Seconds to wait for ssh public key scan
+#   options: []                 # List of strings with extra raw vagrant options
 #
 #   # The vm also supports the following optional ansible behavioral inventory
 #   # parameters. The defaults values are indicated below.
@@ -96,18 +104,28 @@ vagrant_provisioner_box_max_provisioning_time: 300
 
 vagrant_provisioner_vms: []
 
+# Indicate vms provisioning method. Can be asynchronous or sequential
+
+vagrant_provisioner_vms_provisioning_method: asynchronous
+
 # General vm options to apply if no other ones are specified in the specific
 # container dictionary of the vagrant_provisioner_vms variable.
 
 vagrant_provisioner_vm_state: started
-vagrant_provisioner_vm_memory: 512
+vagrant_provisioner_vm_memory: 768
 vagrant_provisioner_vm_cpus: 1
-vagrant_provisioner_vm_groups: [ 'vagrant_provisioner_vms' ]
+vagrant_provisioner_vm_groups:
+  - vagrant_provisioner_vms
+vagrant_provisioner_vm_groups_unmanaged:
+  - vagrant_provisioner_vm_groups_unmanaged
 vagrant_provisioner_vm_playbook: ""
-vagrant_provisioner_vm_options: {}
+vagrant_provisioner_vm_max_provisioning_time: 600
+vagrant_provisioner_vm_public_key_scan_timeout: 5
+vagrant_provisioner_vm_options: []
 vagrant_provisioner_vm_ansible_connection: ssh
 vagrant_provisioner_vm_ansible_user: vagrant
 vagrant_provisioner_vm_ansible_ssh_pass: vagrant
+# vagrant_provisioner_vm_ansible_ssh_private_key_file:
 vagrant_provisioner_vm_ansible_ssh_common_args:
 vagrant_provisioner_vm_ansible_scp_extra_args:
 vagrant_provisioner_vm_ansible_ssh_extra_args:
@@ -121,17 +139,30 @@ vagrant_provisioner_vm_ansible_become_exe:
 vagrant_provisioner_vm_ansible_become_flags:
 vagrant_provisioner_vm_ansible_python_interpreter: /usr/bin/python
 vagrant_provisioner_vm_ansible_shell_executable: /bin/sh
-vagrant_provisioner_vm_max_provisioning_time: 300
 
 # Default base directory to store vagrant vms
 
-vagrant_provisioner_vms_directory: "~/.vagrant"
+vagrant_provisioner_vms_path: "~/.vagrant"
+
+# Generate ansible-playbook in-memory info from virtual machines with add_host
+# Take into account that add_host module bypasses the play host loop and only
+# runs once for all the hosts in the play. So, if you are managing several
+# docker engines in the play, you must disable this flag and  call the this role
+# again with this flag activated (and images/containers list empty)
+
+vagrant_provisioner_in_memory_inventory: true
 
 # Time to wait (in seconds) between vms provisioning start to avoid
 # overwhelming the machine launching too many asynchronous provisioning
 # processes at the same time
 
 vagrant_provisioner_vms_interleave_time: 4
+
+# List of machines to update ssh known_hosts with deployed virtual machines
+# public keys
+
+vagrant_provisioner_known_hosts_dest:
+  - "{{ inventory_hostname }}"
 
 # If defined, this variable tells to role to create a minimal inventory file
 # containing the deployed vms. Be warned that auth info is contained in

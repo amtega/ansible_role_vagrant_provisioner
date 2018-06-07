@@ -1,0 +1,13 @@
+- hosts: all
+  vars:
+    ansible_become: true
+    ansible_become_method: sudo
+  tasks:
+    - name: setup root user
+      user:
+        name: root
+        shell: /bin/bash
+        group: root
+        password: >-
+          {{ "root"
+             | password_hash('sha512', 100000000000 | random | string) }}

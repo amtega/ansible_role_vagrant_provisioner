@@ -29,7 +29,7 @@
                     is search("action,package,end")
                 and not vagrant_provisioner_package_boxes_result.stdout
                         is search("package as already exists") )
-          with_indexed_items: "{{ vagrant_provisioner_boxes_vms }}"
+          loop: "{{ query('indexed_items', vagrant_provisioner_boxes_vms) }}"
           loop_control:
             loop_var: vm
             label: "{{ vm.1.name }}"
@@ -37,7 +37,7 @@
         - name: add built boxes to vagrant
           shell: >-
             vagrant box --machine-readable add --force
-            {{ vm.1.name }}
+            --name {{ vm.1.box.name }}
             {{ vm.1.name }}.box | tee -a vagrant.log
           args:
             chdir: "{{ vm_path }}"
@@ -51,7 +51,7 @@
           when: >-
               vagrant_provisioner_package_boxes_result.results[vm.0]
               is changed
-          with_indexed_items: "{{ vagrant_provisioner_boxes_vms }}"
+          loop: "{{ query('indexed_items', vagrant_provisioner_boxes_vms) }}"
           loop_control:
             loop_var: vm
             label: "{{ vm.1.name }}"
@@ -60,7 +60,7 @@
       vars:
         vm_path: >-
           {{ vm.1.directory
-             | default(vagrant_provisioner_vms_directory | expanduser
+             | default(vagrant_provisioner_vms_path | expanduser
                        + "/"
                        + vm.1.name) }}
   tags:

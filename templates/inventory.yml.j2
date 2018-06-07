@@ -1,0 +1,23 @@
+---
+{{ ansible_managed | comment }}
+
+all:
+  children:
+{% for group in inventory
+                | map(attribute="groups")
+                | list
+                | flatten
+                | unique %}
+    {{ group }}:
+      hosts:
+{% for vm in inventory %}
+{% if group in vm.groups %}
+        {{ vm.name }}:
+{% for v in vm %}
+{% if vm[v] | default('') | string | length > 0 %}
+          {{ v }}: "{{ vm[v] }}"
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endfor %}

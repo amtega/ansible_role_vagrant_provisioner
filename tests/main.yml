@@ -8,8 +8,8 @@
       vagrant_presets_boxes_json_query: >-
         [? (starts_with(name, `centos-7`))
            || starts_with(name, `debian-9`)
-           || starts_with(name, `fedora-26`)
-           || starts_with(name, `fedora-27`) ]
+           || starts_with(name, `fedora-27`)
+           || starts_with(name, `fedora-28`) ]
   tags:
     - sandbox
 
@@ -22,6 +22,23 @@
       vagrant_provisioner_vm_memory: 1024
   tags:
     - sandbox
+
+- name: update kernel in sandbox hosts and reboot them
+  hosts: vagrant_sandbox_vms
+  roles:
+    - amtega.gnu_linux
+  tasks:
+    - name: update kernel
+      package:
+        name: "kernel-*"
+        state: latest
+      notify:
+        - reboot host
+        - wait host
+
+    - meta: flush_handlers
+  tags:
+    - idempotence
 
 - name: setup software and config requirements in sandbox hosts
   hosts: vagrant_sandbox_vms

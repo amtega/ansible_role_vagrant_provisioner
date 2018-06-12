@@ -1,5 +1,5 @@
 ---
-# Setup vagrant boxes
+# Setup vagrant boxes sequentially
 
 - block:
     - name: sequential vagrant boxes deploy

@@ -20,7 +20,6 @@ vagrant_provisioner_plugins: []
 #   provider_options: {}           # Dict with the specific provider settings
 #   state: present                 # present or absent (to add remove the box)
 #   max_provisioning_time: 300     # Maximum time to provisione
-#
 #   playbook: ""                   # Playbook to customize the image
 #                                  # If specified a new image will be generated
 #                                  # and be customized using the given playbook.

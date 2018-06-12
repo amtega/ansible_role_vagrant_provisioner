@@ -1,5 +1,5 @@
 ---
-# Setup vagrant boxes
+# Setup vagrant boxes asynchronously
 
 - block:
     - name: launch vagrant asynchronous boxes provisioning

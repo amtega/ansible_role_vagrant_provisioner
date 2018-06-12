@@ -1,5 +1,5 @@
 ---
-# Setup vagrant vms
+# Setup vagrant asynchronously
 
 - block:
     - name: launch vagrant asynchronous virtual machines provisioning

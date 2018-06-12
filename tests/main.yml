@@ -15,7 +15,6 @@
 
 - name: run idempotence test
   hosts: localhost
-  serial: 1
   roles:
     - role: amtega.vagrant_sandbox
       vagrant_sandbox_state: started
@@ -42,7 +41,6 @@
 
 - name: setup software and config requirements in sandbox hosts
   hosts: vagrant_sandbox_vms
-  serial: 1
   roles:
     - role: amtega.virtualbox_engine
     - role: amtega.vagrant_engine
@@ -112,7 +110,6 @@
 
 - name: test sequential boxes and vms provisioning
   hosts: vagrant_sandbox_vms
-  serial: 1
   roles:
     - role: amtega.vagrant_provisioner
       vagrant_provisioner_boxes_provisioning_method: sequential
@@ -143,7 +140,6 @@
 
 - name: test async boxes and vms provisioning
   hosts: vagrant_sandbox_vms
-  serial: 1
   roles:
     - role: amtega.vagrant_provisioner
       vagrant_provisioner_boxes_provisioning_method: asynchronous
@@ -174,7 +170,6 @@
 
 - name: test cleanup
   hosts: localhost
-  serial: 1
   roles:
     - role: amtega.vagrant_provisioner
       vagrant_provisioner_plugins:

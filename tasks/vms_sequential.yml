@@ -1,5 +1,5 @@
 ---
-# Setup vagrant vms
+# Setup vagrant vms sequentiallly
 
 - block:
     - name: sequential vagrant virtual machines deploy

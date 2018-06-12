@@ -1,5 +1,5 @@
 ---
-# Setup vagrant boxes
+# Build vagrant boxes
 
 - block:
     - name: create vagrant vms to build boxes

@@ -4,11 +4,12 @@
 {% set fields=vm.split(" ") %}
 {% set name=fields.1 %}
 {% set ssh_config_results_filtered=vagrant_provisioner_ssh_config_result.results
-                         | selectattr("invocation", "defined")
-                         | selectattr("invocation.module_args.chdir",
-                                      "equalto",
-                                      fields.4)
-                         | list %}
+                                   | selectattr("invocation", "defined")
+                                   | selectattr("invocation.module_args.chdir",
+                                                "equalto",
+                                                fields.4)
+                                   | selectattr("rc", "equalto", 0)
+                                   | list %}
 
 {% if ssh_config_results_filtered | length > 0 %}
 {% set ssh_config_result=ssh_config_results_filtered | first %}

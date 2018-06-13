@@ -57,9 +57,12 @@
                        | ternary("absent", item.1.state)) }}
       loop: >-
         {{ query(
-             'nested',
+             "nested",
               vagrant_provisioner_known_hosts_dest,
               vagrant_provisioner_vms_facts
+              | selectattr("ansible_host", "defined")
+              | selectattr("ansible_port", "defined")
+              | selectattr("ssh_public_keys", "defined")
               | list) }}
       loop_control:
         label: >-
@@ -118,6 +121,10 @@
       when: vagrant_provisioner_in_memory_inventory
       loop: >-
         {{ vagrant_provisioner_vms_facts
+           | selectattr("ansible_connection", "defined")
+           | selectattr("ansible_host", "defined")
+           | selectattr("ansible_port", "defined")
+           | selectattr("ansible_ssh_private_key_file", "defined")
            | selectattr("ansible_user", "undefined")
            | list }}
       loop_control:

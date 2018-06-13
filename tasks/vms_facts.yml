@@ -21,6 +21,10 @@
         - status.split(' ').3 == "running"
       register: vagrant_provisioner_ssh_config_result
       changed_when: false
+      failed_when: >-
+        vagrant_provisioner_ssh_config_result.rc != 0
+        and not vagrant_provisioner_ssh_config_result.stderr
+                is search("is not yet ready for SSH")
       loop: "{{ global_status }}"
       loop_control:
         label: "{{ status.split(' ').1 }}"
@@ -53,7 +57,12 @@
       when: vagrant_provisioner_known_hosts_dest | length > 0
       register: vagrant_provisioner_get_public_keys_result
       changed_when: false
-      loop: "{{ vms | selectattr('state', 'equalto', 'started') | list }}"
+      loop: >-
+        {{ vms
+           | selectattr('ansible_host', 'defined')
+           | selectattr('ansible_port', 'defined')
+           | selectattr('state', 'equalto', 'started')
+           | list }}
       loop_control:
         label: "{{ vm.name }} {{ vm.ansible_host }}:{{ vm.ansible_port }}"
         loop_var: vm

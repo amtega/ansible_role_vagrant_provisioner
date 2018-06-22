@@ -4,11 +4,11 @@
    or vagrant_provisioner_boxes_force_build %}
 {% set name="tmp-" + box.name + "-" + 99999999 | random | string %}
 - name:  "{{ name }}"
-  box: {{ box | to_yaml }}
+  box: {{ box | to_json }}
   hostname: "{{ name | regex_replace("_", "-") }}"
-{% for attribute in box  %}
+{% for attribute in box %}
 {% if attribute not in ['name', 'box', 'hostname'] %}
-  {{ attribute }}: "{{ box[attribute] }}"
+  {{ attribute }}: {{ box[attribute] | to_json }}
 {% endif %}
 {% endfor %}
 {% endif %}

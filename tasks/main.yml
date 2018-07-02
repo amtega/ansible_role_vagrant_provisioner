@@ -23,11 +23,6 @@
 
 - name: save inventory file with the provisioned vms
   include_tasks: inventory.yml
-  when:
-    vagrant_provisioner_setup_result.results
-    | select("changed")
-    | list
-    | length > 0
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::vms

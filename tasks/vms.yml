@@ -40,7 +40,9 @@
 
     - name: create .ssh directory
       file:
-        path: "~/.ssh"
+        path: >-
+          {{ (ansible_facts.env
+              | default(ansible_facts.ansible_env))["HOME"] }}/.ssh"
         state: directory
         mode: 0700
       loop: "{{ vagrant_provisioner_known_hosts_dest }}"

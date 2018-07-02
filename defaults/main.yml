@@ -141,7 +141,9 @@ vagrant_provisioner_vm_ansible_shell_executable: /bin/sh
 
 # Default base directory to store vagrant vms
 
-vagrant_provisioner_vms_path: "~/.vagrant"
+vagrant_provisioner_vms_path: >-
+  {{ (ansible_facts.env
+      | default(ansible_facts.ansible_env))["HOME"] }}/.vagrant
 
 # Generate ansible-playbook in-memory info from virtual machines with add_host
 # Take into account that add_host module bypasses the play host loop and only

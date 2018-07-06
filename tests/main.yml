@@ -50,7 +50,7 @@
       package:
         name: "{{ item }}"
         state: present
-      with_items:
+      loop:
         - ansible
         - >-
           {{ (ansible_facts.distribution | lower != "debian")

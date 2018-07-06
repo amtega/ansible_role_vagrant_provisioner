@@ -1,6 +1,12 @@
 ---
 # Role tasks
 
+- name: sanity checks
+  import_tasks: check.yml
+  tags:
+    - role::vagrant_provisioner
+    - role::vagrant_provisioner::check
+
 - name: setup vagrant plugins
   include_tasks: plugins.yml
   when: vagrant_provisioner_plugins | length > 0

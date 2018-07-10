@@ -53,15 +53,12 @@
         state: present
       loop:
         - ansible
-        - >-
-          {{ (ansible_facts.distribution | lower != "debian")
-             | ternary("libvirt-devel", "libvirt-dev") }}
         - sshpass
 
     - name: configure vagrant_provisioner plugins
       set_fact:
         vagrant_provisioner_plugins:
-          - name: vagrant-libvirt
+          - name: vagrant-utils
             state: present
 
     - name: configure vagrant_provisioner boxes
@@ -85,9 +82,11 @@
             ansible_become: true
             ansible_become_user: root
             ansible_become_method: sudo
+            max_provisioning_time: 900
             options:
               - "config.ssh.forward_agent = true"
               - "config.ssh.forward_x11 = true"
+              - "config.vm.boot_timeout = 900"
           - name: centos-6-i386-2
             hostname: centos-6-i386-2
             box: centos-6-i386
@@ -97,9 +96,11 @@
             ansible_become: true
             ansible_become_user: root
             ansible_become_method: sudo
+            max_provisioning_time: 900
             options:
               - "config.ssh.forward_agent = true"
               - "config.ssh.forward_x11 = true"
+              - "config.vm.boot_timeout = 900"
 
     - name: setup bootstrap playbook
       copy:
@@ -111,6 +112,7 @@
 
 - name: test sequential boxes and vms provisioning
   hosts: vagrant_sandbox_vms
+  serial: 2
   roles:
     - role: amtega.vagrant_provisioner
       vagrant_provisioner_boxes_provisioning_method: sequential
@@ -140,6 +142,7 @@
     - idempotence
 
 - name: test async boxes and vms provisioning
+  serial: 2
   hosts: vagrant_sandbox_vms
   roles:
     - role: amtega.vagrant_provisioner
@@ -174,7 +177,7 @@
   roles:
     - role: amtega.vagrant_provisioner
       vagrant_provisioner_plugins:
-        - name: vagrant-libvirt
+        - name: vagrant-utils
           state: absent
       vagrant_provisioner_boxes_provisioning_method: asynchronous
       vagrant_provisioner_box_state: absent

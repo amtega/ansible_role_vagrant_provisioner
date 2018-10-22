@@ -19,7 +19,7 @@
                        | default(vagrant_provisioner_box_version) + '"',
                      "") }}
       register: vagrant_provisioner_boxes_async_result
-      changed_when: false
+      changed_when: no
       loop: >-
         {{ query('indexed_items',
            vagrant_provisioner_boxes

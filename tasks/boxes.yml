@@ -4,7 +4,7 @@
 - block:
     - name: get vagrant boxes list
       shell: vagrant --machine-readable box list
-      changed_when: false
+      changed_when: no
       register: vagrant_provisioner_get_boxes_result
 
     - import_tasks: "{{ vagrant_provisioner_boxes_provisioning_include }}"
@@ -38,7 +38,7 @@
             use_regex: yes
             file_type: directory
           vars:
-              vagrant_provisioner_boxes_force_build: true
+              vagrant_provisioner_boxes_force_build: yes
           register: vagrant_sandbox_search_boxes_vms_result
 
         - name: drop temporary vms created to build boxes
@@ -47,7 +47,7 @@
           vars:
            vagrant_provisioner_vm_state: "absent"
            vagrant_provisioner_vms: "{{ vagrant_provisioner_boxes_vms }}"
-           vagrant_provisioner_boxes_force_build: true
+           vagrant_provisioner_boxes_force_build: yes
       vars:
         vagrant_provisioner_boxes_found: >-
           {{ vagrant_provisioner_get_boxes_result.stdout.splitlines()

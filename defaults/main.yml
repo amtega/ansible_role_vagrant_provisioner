@@ -41,9 +41,9 @@ vagrant_provisioner_boxes_provisioning_method: sequential
 vagrant_provisioner_boxes_interleave_time: 2
 
 # The role tries to guess if it's necessary to build vagrant boxes. If this
-# variable is set to true build is forced
+# variable is set to yes build is forced
 
-vagrant_provisioner_boxes_force_build: false
+vagrant_provisioner_boxes_force_build: no
 
 # Box options to apply if no other ones are specified in the specific
 # image dictionary of the vagrant_provisioner_boxes variable.
@@ -90,9 +90,9 @@ vagrant_provisioner_box_max_provisioning_time: 600
 #   ansible_ssh_common_args:
 #   ansible_scp_extra_args:
 #   ansible_ssh_extra_args:
-#   ansible_ssh_pipelining: false
+#   ansible_ssh_pipelining: no
 #   ansible_ssh_executable: ssh
-#   ansible_become: false
+#   ansible_become: no
 #   ansible_become_method: sudo
 #   ansible_become_user: root
 #   ansible_become_pass:
@@ -128,9 +128,9 @@ vagrant_provisioner_vm_ansible_ssh_pass: vagrant
 vagrant_provisioner_vm_ansible_ssh_common_args:
 vagrant_provisioner_vm_ansible_scp_extra_args:
 vagrant_provisioner_vm_ansible_ssh_extra_args:
-vagrant_provisioner_vm_ansible_ssh_pipelining: false
+vagrant_provisioner_vm_ansible_ssh_pipelining: no
 vagrant_provisioner_vm_ansible_ssh_executable: ssh
-vagrant_provisioner_vm_ansible_become: false
+vagrant_provisioner_vm_ansible_become: no
 vagrant_provisioner_vm_ansible_become_method: sudo
 vagrant_provisioner_vm_ansible_become_user: root
 vagrant_provisioner_vm_ansible_become_pass: vagrant
@@ -151,7 +151,7 @@ vagrant_provisioner_vms_path: >-
 # docker engines in the play, you must disable this flag and  call the this role
 # again with this flag activated (and images/containers list empty)
 
-vagrant_provisioner_in_memory_inventory: true
+vagrant_provisioner_in_memory_inventory: yes
 
 # Time to wait (in seconds) between vms provisioning start to avoid
 # overwhelming the machine launching too many asynchronous provisioning

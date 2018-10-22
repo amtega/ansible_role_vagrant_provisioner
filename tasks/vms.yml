@@ -99,7 +99,7 @@
         ansible_python_interpreter: "{{ vm.ansible_python_interpreter }}"
         ansible_shell_executable: "{{ vm.ansible_shell_executable }}"
         ssh_public_keys: "{{ vm.ssh_public_keys | default('') }}"
-      changed_when: false
+      changed_when: no
       when: vagrant_provisioner_in_memory_inventory
       loop: >-
         {{ vagrant_provisioner_vms_facts
@@ -119,7 +119,7 @@
         ansible_port: "{{ vm.ansible_port }}"
         ansible_ssh_private_key_file: "{{ vm.ansible_ssh_private_key_file }}"
         ssh_public_keys: "{{ vm.ssh_public_keys | default('') }}"
-      changed_when: false
+      changed_when: no
       when: vagrant_provisioner_in_memory_inventory
       loop: >-
         {{ vagrant_provisioner_vms_facts

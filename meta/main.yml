@@ -2,6 +2,7 @@
 # Role dependencies
 
 galaxy_info:
+  role_name: vagrant_provisioner
   author: Juan Antonio Valiño García / Daniel Sánchez Fábregas
   description: Setup vagrant boxes and virtual machines
   company: AMTEGA - Xunta de Galicia

@@ -1,6 +1,6 @@
 - hosts: all
   vars:
-    ansible_become: true
+    ansible_become: yes
     ansible_become_method: sudo
   tasks:
     - name: setup root user

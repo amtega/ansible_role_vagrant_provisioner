@@ -25,7 +25,7 @@
 - name: update kernel in sandbox hosts and reboot them
   hosts: vagrant_sandbox_vms
   roles:
-    - amtega.gnu_linux
+    - amtega.reboot
   tasks:
     - name: update kernel
       package:

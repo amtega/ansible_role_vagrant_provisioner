@@ -7,7 +7,7 @@ galaxy_info:
   description: Setup vagrant boxes and virtual machines
   company: AMTEGA - Xunta de Galicia
   license: GPLv3 or EUPL
-  min_ansible_version: 2.6
+  min_ansible_version: 2.7
   platforms:
   - name: Fedora
     versions:

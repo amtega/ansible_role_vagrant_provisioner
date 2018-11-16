@@ -1,7 +1,9 @@
+{% set ns = namespace(empty=true) %}
 {% for box in vagrant_provisioner_boxes_to_build %}
 {% if box.name in vagrant_provisioner_boxes_changed
    or box.name not in vagrant_provisioner_boxes_found
    or vagrant_provisioner_boxes_force_build %}
+{% set ns.empty = false %}
 {% set name="tmp-" + box.name + "-" + 99999999 | random | string %}
 - name:  "{{ name }}"
   box: {{ box | to_json }}
@@ -12,6 +14,7 @@
 {% endif %}
 {% endfor %}
 {% endif %}
-{% else %}
-[]
 {% endfor %}
+{% if ns.empty %}
+[]
+{% endif %}

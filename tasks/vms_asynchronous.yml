@@ -45,7 +45,7 @@
     - name: wait for vagrant asynchronous virtual machines provisioning
       async_status:
         jid: "{{ async_item.ansible_job_id }}"
-      when: async_item.ansible_job_id | default(0) > 0
+      when: async_item.ansible_job_id | default(0) | int > 0
       register: vagrant_provisioner_vms_setup_result
       changed_when:
         - vagrant_provisioner_vms_setup_result.rc | default(-1) == 0

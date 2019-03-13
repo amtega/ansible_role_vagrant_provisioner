@@ -1,7 +1,7 @@
 ---
 # Tasks for testing role
 
-- name: configure vagrant sandbox environment
+- name: Configure vagrant sandbox environment
   hosts: localhost
   roles:
     - role: amtega.vagrant_presets
@@ -13,7 +13,7 @@
   tags:
     - sandbox
 
-- name: run idempotence test
+- name: Run idempotence test
   hosts: localhost
   roles:
     - role: amtega.vagrant_sandbox
@@ -22,12 +22,12 @@
   tags:
     - sandbox
 
-- name: update kernel in sandbox hosts and reboot them
+- name: Update kernel in sandbox hosts and reboot them
   hosts: vagrant_sandbox_vms
   roles:
     - amtega.reboot
   tasks:
-    - name: update kernel
+    - name: Update kernel
       package:
         name: "kernel-*"
         state: latest
@@ -40,14 +40,14 @@
     - prepare
     - idempotence
 
-- name: setup software and config requirements in sandbox hosts
+- name: Setup software and config requirements in sandbox hosts
   hosts: vagrant_sandbox_vms
   roles:
     - role: amtega.virtualbox_engine
     - role: amtega.vagrant_engine
     - role: amtega.vagrant_presets
   tasks:
-    - name: install required packages
+    - name: Install required packages
       package:
         name: "{{ item }}"
         state: present
@@ -55,25 +55,25 @@
         - ansible
         - sshpass
 
-    - name: configure vagrant_provisioner plugins
+    - name: Configure vagrant_provisioner plugins
       set_fact:
         vagrant_provisioner_plugins:
-          - name: vagrant-utils
+          - name: Vagrant-utils
             state: present
 
-    - name: configure vagrant_provisioner boxes
+    - name: Configure vagrant_provisioner boxes
       set_fact:
         vagrant_provisioner_boxes:
-          - name: centos-6-i386
+          - name: Centos-6-i386
             address: bento/centos-6.7-i386
             distribution: CentOS
             distribution_version: 6
             playbook: /tmp/bootstrap.yml
 
-    - name: configure vagrant_provisioner virtual machines
+    - name: Configure vagrant_provisioner virtual machines
       set_fact:
         vagrant_provisioner_vms:
-          - name: centos-6-i386-1
+          - name: Centos-6-i386-1
             hostname: centos-6-i386-1
             box: centos-6-i386
             memory: 128
@@ -87,7 +87,7 @@
               - "config.ssh.forward_agent = true"
               - "config.ssh.forward_x11 = true"
               - "config.vm.boot_timeout = 900"
-          - name: centos-6-i386-2
+          - name: Centos-6-i386-2
             hostname: centos-6-i386-2
             box: centos-6-i386
             memory: 128
@@ -102,7 +102,7 @@
               - "config.ssh.forward_x11 = true"
               - "config.vm.boot_timeout = 900"
 
-    - name: setup bootstrap playbook
+    - name: Setup bootstrap playbook
       copy:
         src: bootstrap.yml
         dest: /tmp
@@ -110,7 +110,7 @@
   tags:
     - idempotence
 
-- name: test sequential boxes and vms provisioning
+- name: Test sequential boxes and vms provisioning
   hosts: vagrant_sandbox_vms
   serial: 2
   roles:
@@ -123,8 +123,8 @@
   vars:
     vagrant_provisioner_inventory: /tmp/vagrant_inventory
   tasks:
-    - name: check provisioned virtual machines connection
-      shell: >-
+    - name: Check provisioned virtual machines connection
+      command: >-
         ansible -m setup
         -i {{ vagrant_provisioner_inventory }}
         {{ vm.name }}
@@ -141,7 +141,7 @@
   tags:
     - idempotence
 
-- name: test async boxes and vms provisioning
+- name: Test async boxes and vms provisioning
   serial: 2
   hosts: vagrant_sandbox_vms
   roles:
@@ -154,8 +154,8 @@
   vars:
     vagrant_provisioner_inventory: /tmp/vagrant_inventory
   tasks:
-    - name: check provisioned virtual machines connection
-      shell: >-
+    - name: Check provisioned virtual machines connection
+      command: >-
         ansible -m setup
         -i {{ vagrant_provisioner_inventory }}
         {{ vm.name }}
@@ -172,22 +172,23 @@
   tags:
     - idempotence
 
-- name: test cleanup
+- name: Test cleanup
   hosts: localhost
   roles:
     - role: amtega.vagrant_provisioner
       vagrant_provisioner_plugins:
-        - name: vagrant-utils
+        - name: Vagrant-utils
           state: absent
       vagrant_provisioner_boxes_provisioning_method: asynchronous
       vagrant_provisioner_box_state: absent
       vagrant_provisioner_vms_provisioning_method: asynchronous
       vagrant_provisioner_vm_state: absent
 
-- name: cleanup vagrant sandbox
+- name: Cleanup vagrant sandbox
   hosts: localhost
   roles:
     - role: amtega.vagrant_sandbox
       vagrant_sandbox_state: absent
   tags:
+    - cleanup
     - sandbox

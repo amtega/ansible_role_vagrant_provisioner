@@ -2,13 +2,13 @@
 # Setup vagrant plugins
 
 - block:
-    - name: get vagrant plugin list
-      shell: vagrant plugin list
+    - name: Get vagrant plugin list
+      command: vagrant plugin list
       changed_when: no
       register: vagrant_provisioner_get_plugins_result
 
-    - name: setup vagrant plugins
-      shell: >-
+    - name: Setup vagrant plugins
+      command: >-
         vagrant plugin
         {{ (plugin.state == "present") | ternary("install", "uninstall") }}
         {{ plugin.name }}

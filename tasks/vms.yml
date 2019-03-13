@@ -2,10 +2,10 @@
 # Setup vagrant vms
 
 - block:
-    - name: get current vms facts
+    - name: Get current vms facts
       import_tasks: vms_facts.yml
 
-    - name: create vagrant virtual machines directories
+    - name: Create vagrant virtual machines directories
       file:
         path: "{{ vm_path }}"
         state: directory
@@ -16,7 +16,7 @@
         label: "{{ vm.hostname }}"
         loop_var: vm
 
-    - name: create vagrant config file for virtual machines
+    - name: Create vagrant config file for virtual machines
       template:
         src: Vagrantfile.j2
         dest: "{{ vm_path }}/Vagrantfile"
@@ -35,10 +35,10 @@
              | ternary("vms_asynchronous.yml",
                        "vms_sequential.yml") }}
 
-    - name: refresh provisioned virtual machine facts
+    - name: Refresh provisioned virtual machine facts
       import_tasks: vms_facts.yml
 
-    - name: create .ssh directory
+    - name: Create .ssh directory
       file:
         path: >-
           {{ (ansible_facts.env
@@ -48,7 +48,7 @@
       loop: "{{ vagrant_provisioner_known_hosts_dest }}"
       delegate_to: "{{ item }}"
 
-    - name: setup ssh known_hosts entries
+    - name: Setup ssh known_hosts entries
       known_hosts:
         name: "[{{ item.1.ansible_host }}]:{{ item.1.ansible_port }}"
         key: "{{ item.1.ssh_public_keys | default('') }}"
@@ -74,9 +74,8 @@
         vm_state: "{{ item.1.state | default(vagrant_provisioner_vm_state) }}"
       delegate_to: "{{ item.0 }}"
 
-    - name: associate inventory info to managed vagrant virtual machines
-      local_action: add_host
-      args:
+    - name: Associate inventory info to managed vagrant virtual machines
+      add_host:
         name: "{{ vm.name }}"
         groups: "{{ vm.groups }}"
         ansible_connection: "{{ vm.ansible_connection }}"
@@ -108,10 +107,10 @@
       loop_control:
         label: "{{ vm.name }} {{ vm.ansible_host }}:{{ vm.ansible_port }}"
         loop_var: vm
+      delegate_to: localhost
 
-    - name: associate inventory info to unmanaged vagrant virtual machines
-      local_action: add_host
-      args:
+    - name: Associate inventory info to unmanaged vagrant virtual machines
+      add_host:
         name: "{{ vm.name }}"
         groups: "{{ vm.groups }}"
         ansible_connection: "{{ vm.ansible_connection }}"
@@ -132,8 +131,9 @@
       loop_control:
         label: "{{ vm.name }} {{ vm.ansible_host }}:{{ vm.ansible_port }}"
         loop_var: vm
+      delegate_to: localhost
 
-    - name: remove vagrant absent virtual machines directories
+    - name: Remove vagrant absent virtual machines directories
       file:
         path: "{{ vm_path }}"
         state: absent

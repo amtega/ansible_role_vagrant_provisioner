@@ -2,8 +2,8 @@
 # Setup vagrant boxes asynchronously
 
 - block:
-    - name: launch vagrant asynchronous boxes provisioning
-      shell: >-
+    - name: Launch vagrant asynchronous boxes provisioning
+      command: >-
         sleep {{ vagrant_provisioner_boxes_interleave_time * box.0 }}s ;
         vagrant box
         {{ vagrant_command }}
@@ -40,7 +40,7 @@
              + box.1.state | default(vagrant_provisioner_box_state) }}
         loop_var: box
 
-    - name: check vagrant asynchronous boxes provisioning
+    - name: Check vagrant asynchronous boxes provisioning
       async_status:
         jid: "{{ async_item.ansible_job_id }}"
       register: vagrant_provisioner_boxes_setup_result

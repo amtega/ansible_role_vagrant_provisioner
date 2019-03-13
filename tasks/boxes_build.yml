@@ -2,23 +2,24 @@
 # Build vagrant boxes
 
 - block:
-    - name: create vagrant vms to build boxes
+    - name: Create vagrant vms to build boxes
       include_tasks: vms.yml
       when: vagrant_provisioner_boxes_vms | length > 0
       vars:
         vagrant_provisioner_vm_state: "started"
         vagrant_provisioner_vms: "{{ vagrant_provisioner_boxes_vms }}"
 
-    - name: refresh inventory to remove temporary vms used to build images
+    - name: Refresh inventory to remove temporary vms used to build images
       meta: refresh_inventory
 
     - block:
-        - name: package vms into vagrant boxes
+        - name: Package vms into vagrant boxes
           shell: >-
             vagrant package --machine-readable
             --output {{ vm.1.name }}.box | tee -a vagrant.log
           args:
             chdir: "{{ vm_path }}"
+            warn: no
           register: vagrant_provisioner_package_boxes_result
           changed_when: >-
             vagrant_provisioner_package_boxes_result.stdout
@@ -34,13 +35,14 @@
             loop_var: vm
             label: "{{ vm.1.name }}"
 
-        - name: add built boxes to vagrant
+        - name: Add built boxes to vagrant
           shell: >-
             vagrant box --machine-readable add --force
             --name {{ vm.1.box.name }}
             {{ vm.1.name }}.box | tee -a vagrant.log
           args:
             chdir: "{{ vm_path }}"
+            warn: no
           register: vagrant_provisioner_add_built_boxes_result
           changed_when: >-
             vagrant_provisioner_add_built_boxes_result.stdout

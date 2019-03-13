@@ -1,33 +1,27 @@
 ---
 # Role tasks
 
-- name: sanity checks
-  import_tasks: check.yml
-  tags:
-    - role::vagrant_provisioner
-    - role::vagrant_provisioner::check
-
-- name: setup vagrant plugins
+- name: Setup vagrant plugins
   include_tasks: plugins.yml
   when: vagrant_provisioner_plugins | length > 0
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::plugins
 
-- name: setup vagrant boxes
+- name: Setup vagrant boxes
   include_tasks: boxes.yml
   when: vagrant_provisioner_boxes | length > 0
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::boxes
 
-- name: setup vagrant virtual machines
+- name: Setup vagrant virtual machines
   include_tasks: vms.yml
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::vms
 
-- name: save inventory file with the provisioned vms
+- name: Save inventory file with the provisioned vms
   include_tasks: inventory.yml
   tags:
     - role::vagrant_provisioner

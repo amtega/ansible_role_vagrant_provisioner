@@ -1,7 +1,7 @@
 ---
 # Save inventory file with the provisioned vms
 
-- name: save inventory file with the deployed vms
+- name: Save inventory file with the deployed vms
   template:
     src: inventory.yml.j2
     dest: "{{ vagrant_provisioner_inventory }}"

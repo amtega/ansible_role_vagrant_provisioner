@@ -2,18 +2,20 @@
 # Get current containers facts
 
 - block:
-    - name: get vagrant virtual machines global status
+    - name: Get vagrant virtual machines global status
       shell: >-
         vagrant global-status --prune
         | grep -E '....... +.* +virtualbox|libvirt|vmware + .* + .*'
         | grep '/'
         | awk '{ print $1,$2,$3,$4,$5 }'
+      args:
+        warn: no
       register: vagrant_provisioner_get_global_status_result
       changed_when: no
       check_mode: no
 
-    - name: get vagrant virtual machines ssh config
-      shell: vagrant ssh-config
+    - name: Get vagrant virtual machines ssh config
+      command: vagrant ssh-config
       args:
         chdir: "{{ status.split(' ').4 }}"
       when:
@@ -34,7 +36,7 @@
         global_status: >-
           {{ vagrant_provisioner_get_global_status_result.stdout_lines }}
 
-    - name: read vagrant virtual machines directories
+    - name: Read vagrant virtual machines directories
       stat:
         path: "{{ vm.vagrant_path }}"
       register: vagrant_provisioner_check_vms_paths_result
@@ -46,8 +48,8 @@
       vars:
         vms: "{{ lookup('template', 'facts.j2') | from_yaml }}"
 
-    - name: gather vagrant virtual machines ssh public keys
-      shell: >-
+    - name: Gather vagrant virtual machines ssh public keys
+      command: >-
         ssh-keyscan \
         -T \
         {{ vm.public_key_scan_timeout
@@ -70,7 +72,7 @@
       vars:
         vms: "{{ lookup('template', 'facts.j2') | from_yaml }}"
 
-    - name: setup fact with facts ansible-playbook in-memory info
+    - name: Setup fact with facts ansible-playbook in-memory info
       set_fact:
         vagrant_provisioner_vms_facts: >-
           {{ lookup('template', 'facts.j2') | from_yaml }}

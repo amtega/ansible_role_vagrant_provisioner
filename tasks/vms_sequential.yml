@@ -2,7 +2,7 @@
 # Setup vagrant vms sequentiallly
 
 - block:
-    - name: sequential vagrant virtual machines deploy
+    - name: Sequential vagrant virtual machines deploy
       shell: >-
         vagrant --machine-readable
         {{ (vm_state == "started")
@@ -10,6 +10,7 @@
       args:
         chdir: "{{ vm_path }}"
         removes: "{{ (vm_state == 'absent') | ternary('Vagrantfile', '') }}"
+        warn: no
       register: vagrant_provisioner_vms_setup_result
       changed_when:
         - vagrant_provisioner_vms_setup_result.rc | default(-1) == 0
@@ -46,7 +47,7 @@
       loop: "{{ query('indexed_items', vagrant_provisioner_vms) }}"
       loop_control:
         loop_var: vm
-        label: "{{ vm.1.hostname}} {{ vm_state }}"
+        label: "{{ vm.1.hostname }} {{ vm_state }}"
       vars:
         vm_state: "{{ vm.1.state | default(vagrant_provisioner_vm_state) }}"
         vm_path: >-

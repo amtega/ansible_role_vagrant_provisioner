@@ -3,7 +3,7 @@
     ansible_become: yes
     ansible_become_method: sudo
   tasks:
-    - name: setup root user
+    - name: Setup root user
       user:
         name: root
         shell: /bin/bash

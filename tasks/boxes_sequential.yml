@@ -2,8 +2,8 @@
 # Setup vagrant boxes sequentially
 
 - block:
-    - name: sequential vagrant boxes deploy
-      shell: >-
+    - name: Sequential vagrant boxes deploy
+      command: >-
         vagrant box
         {{ vagrant_command }}
         --provider

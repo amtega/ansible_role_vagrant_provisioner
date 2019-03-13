@@ -1,20 +1,10 @@
-# vagrant_provision
+# Ansible vagrant_provisioner role
 
 This is an [Ansible](http://www.ansible.com) role to provisione vagrant boxes and virtual machines.
-
-## Requirements
-
-- [Ansible 2.7+](http://docs.ansible.com/ansible/latest/intro_installation.html)
-- [Vagrant 2.0+](https://www.vagrantup.com/). You can use [amtega.vagrant_engine](https://galaxy.ansible.com/amtega/vagrant_engine/) role to setup it.
-- [Virtual Box 5.2+](https://www.virtualbox.org). You can use [amtega.virtualbox_engine](https://galaxy.ansible.com/amtega/virtualbox_engine/) role to setup it.
 
 ## Role Variables
 
 A list of all the default variables for this role is available in `defaults/main.yml`.
-
-## Dependencies
-
-None.
 
 ## Example Playbook
 
@@ -26,36 +16,39 @@ This is an example playbook:
   hosts: localhost
   roles:
     role: ansible_vagrant_provisioner    
-    vagrant_provisioner_boxes:
-      - name: fedora_27
-        address: fedora/27-cloud-base
-        state: present        
-        provider: virtualbox
-    vagrant_provisioner_vms:
-      - name: fedora_27
-        box: fedora_27
-        state: started        
-        hostname: fedora-27-cloud-base
-        ansible_python_interpreter: /usr/bin/python3        
-        memory: 1024
-        cpus: 1
+    vars:
+      vagrant_provisioner_boxes:
+        - name: fedora_27
+          address: fedora/27-cloud-base
+          state: present        
+          provider: virtualbox
+      vagrant_provisioner_vms:
+        - name: fedora_27
+          box: fedora_27
+          state: started        
+          hostname: fedora-27-cloud-base
+          ansible_python_interpreter: /usr/bin/python3        
+          memory: 1024
+          cpus: 1
 
 - name: delete fedora 27 cloud base vagrant vm
   hosts: localhost
   roles:
-  - role: ansible_vagrant_provisioner    
-    vagrant_provisioner_vms:
-      - name: "fedora_27_cloud_base"
-        state: absent       
+  - role: ansible_vagrant_provisioner
+    vars:
+      vagrant_provisioner_vms:
+        - name: "fedora_27_cloud_base"
+          state: absent       
 
 - name: delete fedora 27 cloud base vagrant box
   hosts: localhost
   roles:
   - role: ansible_vagrant_provisioner    
-    vagrant_provisioner_boxes:
-      - name: fedora/27-cloud-base
-        state: absent
-        provider: virtualbox
+    vars:
+      vagrant_provisioner_boxes:
+        - name: fedora/27-cloud-base
+          state: absent
+          provider: virtualbox
 ```
 
 ## Testing
@@ -71,7 +64,7 @@ $ ansible-playbook main.yml
 
 ## License
 
-Copyright (C) 2018 AMTEGA - Xunta de Galicia
+Copyright (C) 2019 AMTEGA - Xunta de Galicia
 
 This role is free software: you can redistribute it and/or modify it under the terms of:
 

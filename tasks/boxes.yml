@@ -2,8 +2,8 @@
 # Setup vagrant boxes
 
 - block:
-    - name: get vagrant boxes list
-      shell: vagrant --machine-readable box list
+    - name: Get vagrant boxes list
+      command: vagrant --machine-readable box list
       changed_when: no
       register: vagrant_provisioner_get_boxes_result
 
@@ -16,16 +16,16 @@
                        "boxes_sequential.yml") }}
 
     - block:
-        - name: setup fact with virtual machines required to build boxes
+        - name: Setup fact with virtual machines required to build boxes
           set_fact:
             vagrant_provisioner_boxes_vms: >-
               {{ lookup('template', 'boxes_vms.j2') | from_yaml }}
 
-        - name: build vagrant boxes
+        - name: Build vagrant boxes
           include_tasks: boxes_build.yml
           when: vagrant_provisioner_boxes_vms | length > 0
 
-        - name: search temporary vms created to build boxes
+        - name: Search temporary vms created to build boxes
           find:
             paths: "{{ vagrant_provisioner_vms_path | expanduser }}"
             recurse: yes
@@ -41,7 +41,7 @@
               vagrant_provisioner_boxes_force_build: yes
           register: vagrant_sandbox_search_boxes_vms_result
 
-        - name: drop temporary vms created to build boxes
+        - name: Drop temporary vms created to build boxes
           include_tasks: vms.yml
           when: vagrant_provisioner_boxes_vms_created | length > 0
           vars:

@@ -58,13 +58,13 @@
     - name: Configure vagrant_provisioner plugins
       set_fact:
         vagrant_provisioner_plugins:
-          - name: Vagrant-utils
+          - name: vagrant-utils
             state: present
 
     - name: Configure vagrant_provisioner boxes
       set_fact:
         vagrant_provisioner_boxes:
-          - name: Centos-6-i386
+          - name: centos-6-i386
             address: bento/centos-6.7-i386
             distribution: CentOS
             distribution_version: 6
@@ -73,7 +73,7 @@
     - name: Configure vagrant_provisioner virtual machines
       set_fact:
         vagrant_provisioner_vms:
-          - name: Centos-6-i386-1
+          - name: centos-6-i386-1
             hostname: centos-6-i386-1
             box: centos-6-i386
             memory: 128
@@ -87,7 +87,7 @@
               - "config.ssh.forward_agent = true"
               - "config.ssh.forward_x11 = true"
               - "config.vm.boot_timeout = 900"
-          - name: Centos-6-i386-2
+          - name: centos-6-i386-2
             hostname: centos-6-i386-2
             box: centos-6-i386
             memory: 128
@@ -177,7 +177,7 @@
   roles:
     - role: amtega.vagrant_provisioner
       vagrant_provisioner_plugins:
-        - name: Vagrant-utils
+        - name: vagrant-utils
           state: absent
       vagrant_provisioner_boxes_provisioning_method: asynchronous
       vagrant_provisioner_box_state: absent

@@ -12,41 +12,41 @@ This is an example playbook:
 
 ```yaml
 ---
-- name: create fedora 27 cloud base vagrant vm
+- name: Create fedora 30 cloud base vagrant vm
   hosts: localhost
   roles:
     role: ansible_vagrant_provisioner    
     vars:
       vagrant_provisioner_boxes:
-        - name: fedora_27
-          address: fedora/27-cloud-base
+        - name: fedora_30
+          address: fedora/30-cloud-base
           state: present        
           provider: virtualbox
       vagrant_provisioner_vms:
-        - name: fedora_27
-          box: fedora_27
+        - name: fedora_30
+          box: fedora_30
           state: started        
-          hostname: fedora-27-cloud-base
+          hostname: fedora-30-cloud-base
           ansible_python_interpreter: /usr/bin/python3        
           memory: 1024
           cpus: 1
 
-- name: delete fedora 27 cloud base vagrant vm
+- name: Delete fedora 30 cloud base vagrant vm
   hosts: localhost
   roles:
   - role: ansible_vagrant_provisioner
     vars:
       vagrant_provisioner_vms:
-        - name: "fedora_27_cloud_base"
+        - name: "fedora_30_cloud_base"
           state: absent       
 
-- name: delete fedora 27 cloud base vagrant box
+- name: Delete fedora 30 cloud base vagrant box
   hosts: localhost
   roles:
   - role: ansible_vagrant_provisioner    
     vars:
       vagrant_provisioner_boxes:
-        - name: fedora/27-cloud-base
+        - name: fedora/30-cloud-base
           state: absent
           provider: virtualbox
 ```

@@ -7,11 +7,8 @@ galaxy_info:
   description: Setup vagrant boxes and virtual machines
   company: AMTEGA - Xunta de Galicia
   license: GPLv3 or EUPL
-  min_ansible_version: 2.8
+  min_ansible_version: 2.9
   platforms:
-    - name: Debian
-      versions:
-        - stretch
     - name: EL
       versions:
         - 7
@@ -26,5 +23,9 @@ galaxy_info:
 
 dependencies:
   - role: amtega.check_platform
-    tags:
-      - never
+    vars:
+      check_platform_distributions:
+        centos: 7
+        debian: 9
+        fedora: 27
+        rhel: 7

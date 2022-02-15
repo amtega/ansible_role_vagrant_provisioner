@@ -1,3 +1,5 @@
+---
+
 - hosts: all
   vars:
     ansible_become: yes

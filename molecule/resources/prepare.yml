@@ -1,0 +1,39 @@
+---
+
+- name: Prepare
+  hosts: molecule_hosts
+  gather_facts: no
+  become: yes
+  roles:
+    - amtega.reboot
+  tasks:
+    - name: Update kernel
+      package:
+        name: "kernel-*"
+        state: latest
+      notify:
+        - reboot host
+        - wait host
+
+    - name: Flush handlers
+      meta: flush_handlers
+
+    - include_role:
+        name: amtega.virtualbox_engine
+
+    - include_role:
+        name: amtega.vagrant_engine
+
+    - name: Install required packages
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - ansible
+        - sshpass
+
+    - name: Setup bootstrap playbook
+      copy:
+        src: bootstrap.yml
+        dest: /tmp
+        mode: 0600

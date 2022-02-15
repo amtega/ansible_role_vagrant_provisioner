@@ -1,0 +1,26 @@
+---
+
+- name: Converge
+  hosts: molecule_hosts
+  gather_facts: no
+  become: yes
+  roles:
+    - amtega.virtualbox_engine
+    - amtega.vagrant_engine
+    - amtega.vagrant_provisioner
+  tasks:
+    - name: Check provisioned virtual machines connection
+      command: >-
+        ansible -m setup
+        -i {{ vagrant_provisioner_inventory }}
+        {{ vm.name }}
+      changed_when: no
+      loop: >-
+        {{ vagrant_provisioner_vms_facts
+           | selectattr("groups.0", "equalto", "vagrant_provisioner_vms")
+           | list }}
+      loop_control:
+        loop_var: vm
+        label: >-
+          {{ vm.name }}
+          {{ vm.ansible_host }}:{{ vm.ansible_port }}

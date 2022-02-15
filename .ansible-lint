@@ -1,0 +1,5 @@
+---
+
+exclude_paths:
+  - meta
+  - molecule/default/bootstrap.yml

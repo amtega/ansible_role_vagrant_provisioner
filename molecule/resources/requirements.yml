@@ -1,0 +1,8 @@
+---
+
+roles:
+  - amtega.reboot
+  - amtega.virtualbox_engine
+  - amtega.vagrant_engine
+  
+collections: []

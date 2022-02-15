@@ -1,0 +1,6 @@
+---
+
+- name: Verify
+  hosts: molecule_hosts
+  gather_facts: no
+  become: yes

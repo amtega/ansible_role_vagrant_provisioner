@@ -38,16 +38,16 @@
             use_regex: yes
             file_type: directory
           vars:
-              vagrant_provisioner_boxes_force_build: yes
+            vagrant_provisioner_boxes_force_build: yes
           register: vagrant_sandbox_search_boxes_vms_result
 
         - name: Drop temporary vms created to build boxes
           include_tasks: vms.yml
           when: vagrant_provisioner_boxes_vms_created | length > 0
           vars:
-           vagrant_provisioner_vm_state: "absent"
-           vagrant_provisioner_vms: "{{ vagrant_provisioner_boxes_vms }}"
-           vagrant_provisioner_boxes_force_build: yes
+            vagrant_provisioner_vm_state: "absent"
+            vagrant_provisioner_vms: "{{ vagrant_provisioner_boxes_vms }}"
+            vagrant_provisioner_boxes_force_build: yes
       vars:
         vagrant_provisioner_boxes_found: >-
           {{ vagrant_provisioner_get_boxes_result.stdout.splitlines()

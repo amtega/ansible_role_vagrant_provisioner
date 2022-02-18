@@ -53,18 +53,18 @@ This is an example playbook:
 
 ## Testing
 
-Tests are based on vagrant virtual machines. You can setup vagrant engine quickly using the playbook `files/setup.yml` available in the role [amtega.vagrant_engine](https://galaxy.ansible.com/amtega/vagrant_engine).
+Tests are based on [molecule](https://molecule.readthedocs.io/en/latest/installation.html).
 
-Once you have vagrant, you can run the tests with the following commands:
+To run tests you need to vagrant configured on your host (see amtega.vagrant_engine role).
 
 ```shell
-$ cd tests
-$ ansible-playbook main.yml
-```
+cd amtega.vagrant_provisioner
+molecule test --all
+````
 
 ## License
 
-Copyright (C) 2019 AMTEGA - Xunta de Galicia
+Copyright (C) 2022 AMTEGA - Xunta de Galicia
 
 This role is free software: you can redistribute it and/or modify it under the terms of:
 

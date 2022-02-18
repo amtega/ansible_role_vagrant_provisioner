@@ -1,0 +1,20 @@
+---
+
+- name: Cleanup
+  hosts: localhost
+  gather_facts: no
+  roles:
+    - role: amtega.vagrant_provisioner
+      vars:
+        vagrant_provisioner_vm_state: absent
+  tasks:
+    - name: Remove stuff created by tests
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop: >-
+        {{ vagrant_provisioner_boxes
+           | map(attribute="playbook")
+           | list
+           | unique
+           + [vagrant_provisioner_inventory] }}

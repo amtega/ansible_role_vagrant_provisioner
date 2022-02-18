@@ -66,16 +66,16 @@
               and not vagrant_provisioner_vms_setup_result.stdout | default([])
                   is search("Domain is not created"))
       failed_when:
-          (async_item.vm.1.state
-           | default(vagrant_provisioner_vm_state) == "started"
-           and (',ui,error,'
-                in vagrant_provisioner_vms_setup_result.stdout | default([])
-                or vagrant_provisioner_vms_setup_result.rc | default(0) != 0
-                or ',action,up,end'
-                   not in vagrant_provisioner_vms_setup_result.stdout
-                          | default([])))
-          or 'error-exit'
-             in vagrant_provisioner_vms_setup_result.stdout | default([])
+        (async_item.vm.1.state
+         | default(vagrant_provisioner_vm_state) == "started"
+         and (',ui,error,'
+              in vagrant_provisioner_vms_setup_result.stdout | default([])
+              or vagrant_provisioner_vms_setup_result.rc | default(0) != 0
+              or ',action,up,end'
+                 not in vagrant_provisioner_vms_setup_result.stdout
+                        | default([])))
+        or 'error-exit'
+           in vagrant_provisioner_vms_setup_result.stdout | default([])
       loop: "{{ vagrant_provisioner_vms_async_result.results }}"
       loop_control:
         label: >-

@@ -6,7 +6,10 @@
     src: inventory.yml.j2
     dest: "{{ vagrant_provisioner_inventory }}"
     backup: no
-  when: vagrant_provisioner_inventory | default("") | length > 0
+    mode: 0640
+  when:
+    - vagrant_provisioner_inventory | default("") | length > 0
+    - vagrant_provisioner_vms_state_started | length > 0
   vars:
     inventory: "{{ vagrant_provisioner_vms_facts }}"
     inventory_vars:
@@ -32,3 +35,9 @@
   tags:
     - role::vagrant_provisioner
     - role::vagrant_provisioner::vms
+
+- name: Remove inventory file with the deployed vms
+  file:
+    path: "{{ vagrant_provisioner_inventory }}"
+    state: absent
+  when: vagrant_provisioner_vms_state_started | length == 0

@@ -1,0 +1,85 @@
+---
+
+dependency:
+  name: galaxy
+  enabled: yes
+  options:
+    ignore-certs: yes
+    ignore-errors: yes
+    role-file: "${MOLECULE_SCENARIO_DIRECTORY}/../resources/requirements.yml"
+    requirements-file: >-
+      ${MOLECULE_SCENARIO_DIRECTORY}/../resources/requirements.yml
+driver:
+  name: delegated
+  options:
+    managed: no
+    ansible_connection_options:
+      ansible_connection: local
+lint: "${MOLECULE_SCENARIO_DIRECTORY}/../resources/linters.sh"
+platforms:
+  - name: dummy
+provisioner:
+  name: ansible
+  playbooks:
+    prepare: ../resources/prepare.yml
+    converge: ../resources/converge.yml
+    verify: ../resources/verify.yml
+    cleanup: ../resources/cleanup.yml
+    side_effect: ../resources/side_effect.yml
+  config_options:
+    defaults:
+      callbacks_enabled: profile_tasks
+      action_plugins: $PWD/action_plugins
+  inventory:
+    hosts:
+      all:
+        vars:
+          vagrant_provisioner_plugins:
+            - name: vagrant-utils
+              state: present
+
+          vagrant_provisioner_boxes:
+            - name: centos-6-i386
+              address: bento/centos-6.7-i386
+              distribution: CentOS
+              distribution_version: 6
+              playbook: /tmp/bootstrap.yml
+
+          vagrant_provisioner_vms:
+            - name: centos-6-i386-1
+              hostname: centos-6-i386-1
+              box: centos-6-i386
+              memory: 128
+              ansible_user: vagrant
+              ansible_ssh_pass: vagrant
+              ansible_become: yes
+              ansible_become_user: root
+              ansible_become_method: sudo
+              max_provisioning_time: 900
+              options:
+                - "config.ssh.forward_agent = true"
+                - "config.ssh.forward_x11 = true"
+                - "config.vm.boot_timeout = 900"
+
+            - name: centos-6-i386-2
+              hostname: centos-6-i386-2
+              box: centos-6-i386
+              memory: 128
+              ansible_user: vagrant
+              ansible_ssh_pass: vagrant
+              ansible_become: yes
+              ansible_become_user: root
+              ansible_become_method: sudo
+              max_provisioning_time: 900
+              options:
+                - "config.ssh.forward_agent = true"
+                - "config.ssh.forward_x11 = true"
+                - "config.vm.boot_timeout = 900"
+
+          vagrant_provisioner_boxes_provisioning_method: sequential
+          vagrant_provisioner_box_state: present
+          vagrant_provisioner_vms_provisioning_method: sequential
+          vagrant_provisioner_in_memory_inventory: no
+          vagrant_provisioner_inventory: /tmp/vagrant_inventory
+verifier:
+  name: ansible

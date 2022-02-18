@@ -1,0 +1,5 @@
+---
+
+- name: Side effects
+  hosts: localhost
+  gather_facts: no

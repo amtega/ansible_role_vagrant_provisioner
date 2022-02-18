@@ -1,0 +1,23 @@
+---
+# Role variables
+
+vagrant_provisioner_vms_state_undefined: >-
+  {{ vagrant_provisioner_vms
+     | selectattr("state", "undefined")
+     | list }}
+
+vagrant_provisioner_vms_state_started: >-
+  {{ vagrant_provisioner_vms
+     | difference(vagrant_provisioner_vms_state_undefined)
+     | selectattr("state", "equalto", "started")
+     | list
+     + (vagrant_provisioner_vm_state == "started")
+       | ternary(vagrant_provisioner_vms_state_undefined, []) }}
+
+vagrant_provisioner_vms_state_absent: >-
+  {{ vagrant_provisioner_vms
+     | difference(vagrant_provisioner_vms_state_undefined)
+     | selectattr("state", "equalto", "absent")
+     | list
+     + (vagrant_provisioner_vm_state == "absent")
+       | ternary(vagrant_provisioner_vms_state_undefined, []) }}

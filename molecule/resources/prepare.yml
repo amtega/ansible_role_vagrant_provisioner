@@ -1,0 +1,11 @@
+---
+
+- name: Prepare
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Setup bootstrap playbook
+      copy:
+        src: bootstrap.yml
+        dest: /tmp/bootstrap.yml
+        mode: 0644

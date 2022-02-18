@@ -51,6 +51,7 @@
     - name: Gather vagrant virtual machines ssh public keys
       command: >-
         ssh-keyscan \
+        -t rsa
         -T \
         {{ vm.public_key_scan_timeout
            | default(vagrant_provisioner_vm_public_key_scan_timeout) }} \
@@ -63,7 +64,7 @@
         {{ vms
            | selectattr('ansible_host', 'defined')
            | selectattr('ansible_port', 'defined')
-           | selectattr('state', 'equalto', 'started')
+           | selectattr('state', 'in', ['started', 'absent'])
            | list }}
       loop_control:
         label: "{{ vm.name }} {{ vm.ansible_host }}:{{ vm.ansible_port }}"

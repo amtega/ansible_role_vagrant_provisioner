@@ -5,13 +5,35 @@
     - name: Get current vms facts
       import_tasks: vms_facts.yml
 
+    - name: Remove ssh known_hosts entries for hosts that will be deleted
+      known_hosts:
+        name: "[{{ item.1.ansible_host }}]:{{ item.1.ansible_port }}"
+        key: "{{ item.1.ssh_public_keys | default('') }}"
+        hash_host: no
+        state: absent
+      loop: >-
+        {{ vagrant_provisioner_known_hosts_dest
+           | product(vms_known_hosts
+                     | selectattr("name",
+                                  "in",
+                                  vagrant_provisioner_vms_state_absent
+                                  | map(attribute="name")
+                                  | list)
+                     | list) }}
+      loop_control:
+        index_var: index
+        label: >-
+          {{ item.1.name }}
+          {{ item.1.ansible_host }}:{{ item.1.ansible_port }}
+      delegate_to: "{{ item.0 }}"
+
     - name: Create vagrant virtual machines directories
       file:
         path: "{{ vm_path }}"
         state: directory
         force: yes
         mode: 0700
-      loop: "{{ vms_state_started }}"
+      loop: "{{ vagrant_provisioner_vms_state_started }}"
       loop_control:
         label: "{{ vm.hostname }}"
         loop_var: vm
@@ -22,7 +44,7 @@
         dest: "{{ vm_path }}/Vagrantfile"
         mode: 0600
       register: vagrant_provisioner_create_vagrantfile_result
-      loop: "{{ vms_state_started }}"
+      loop: "{{ vagrant_provisioner_vms_state_started }}"
       loop_control:
         label: "{{ vm.hostname }}"
         loop_var: vm
@@ -52,26 +74,22 @@
       known_hosts:
         name: "[{{ item.1.ansible_host }}]:{{ item.1.ansible_port }}"
         key: "{{ item.1.ssh_public_keys | default('') }}"
-        state: >-
-          {{ (vm_state== "started")
-             | ternary("present",
-                       (vm_state == "stopped")
-                       | ternary("absent", item.1.state)) }}
+        hash_host: no
+        state: "{{ key_state }}"
       loop: >-
-        {{ query(
-             "nested",
-              vagrant_provisioner_known_hosts_dest,
-              vagrant_provisioner_vms_facts
-              | selectattr("ansible_host", "defined")
-              | selectattr("ansible_port", "defined")
-              | selectattr("ssh_public_keys", "defined")
-              | list) }}
+        {{ vagrant_provisioner_known_hosts_dest | product(vms_known_hosts) }}
       loop_control:
+        index_var: index
         label: >-
           {{ item.1.name }}
           {{ item.1.ansible_host }}:{{ item.1.ansible_port }}
       vars:
         vm_state: "{{ item.1.state | default(vagrant_provisioner_vm_state) }}"
+        key_state: >-
+          {{ (vm_state== "started")
+             | ternary("present",
+                       (vm_state == "stopped" or vm_state == "absent")
+                       | ternary("absent", item.1.state)) }}
       delegate_to: "{{ item.0 }}"
 
     - name: Associate inventory info to managed vagrant virtual machines
@@ -144,29 +162,17 @@
             | select("failed")
             | selectattr("vm.name")
             | list
-      loop: "{{ vms_state_absent }}"
+      loop: "{{ vagrant_provisioner_vms_state_absent }}"
       loop_control:
         label: "{{ vm.name }}"
         loop_var: vm
   vars:
-    vms_state_undefined: >-
-      {{ vagrant_provisioner_vms
-         | selectattr("state", "undefined")
+    vms_known_hosts: >-
+      {{ vagrant_provisioner_vms_facts
+         | selectattr("ansible_host", "defined")
+         | selectattr("ansible_port", "defined")
+         | selectattr("ssh_public_keys", "defined")
          | list }}
-    vms_state_started: >-
-      {{ vagrant_provisioner_vms
-         | difference(vms_state_undefined)
-         | selectattr("state", "equalto", "started")
-         | list
-         + (vagrant_provisioner_vm_state == "started")
-           | ternary(vms_state_undefined, []) }}
-    vms_state_absent: >-
-      {{ vagrant_provisioner_vms
-         | difference(vms_state_undefined)
-         | selectattr("state", "equalto", "absent")
-         | list
-         + (vagrant_provisioner_vm_state == "absent")
-           | ternary(vms_state_undefined, []) }}
     vm_path: >-
       {{ vm.directory
          | default(vagrant_provisioner_vms_path | expanduser

@@ -1,25 +1,7 @@
 ---
 # Tasks for testing role
 
-- name: Configure sandbox environment
-  hosts: localhost
-  roles:
-    - role: amtega.vagrant_presets
-      vagrant_presets_boxes_json_query: >-
-        [? (starts_with(name, `centos-7`))
-           || starts_with(name, `fedora-29`)
-           || starts_with(name, `fedora-30`) ]
-  tags:
-    - sandbox
 
-- name: Setup testing sandbox
-  hosts: localhost
-  roles:
-    - role: amtega.vagrant_sandbox
-      vagrant_sandbox_state: started
-      vagrant_provisioner_vm_memory: 1024
-  tags:
-    - sandbox
 
 - name: Update kernel in sandbox hosts and reboot them
   hosts: vagrant_sandbox_vms

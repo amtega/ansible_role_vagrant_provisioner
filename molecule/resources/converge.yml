@@ -1,13 +1,12 @@
 ---
 
 - name: Converge
-  hosts: molecule_hosts
+  hosts: localhost
   gather_facts: no
-  become: yes
   roles:
-    - amtega.virtualbox_engine
-    - amtega.vagrant_engine
-    - amtega.vagrant_provisioner
+    - role: amtega.vagrant_provisioner
+      vars:
+        vagrant_provisioner_vm_state: started
   tasks:
     - name: Check provisioned virtual machines connection
       command: >-

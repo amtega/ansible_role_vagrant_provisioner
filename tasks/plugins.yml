@@ -14,12 +14,12 @@
         {{ plugin.name }}
       register: vagrant_provisioner_plugin_setup_result
       failed_when:
-          plugin.state == "present"
-          and not vagrant_provisioner_plugin_setup_result.stdout
-                  is search("Installed the plugin .*" + plugin.name)
-          or plugin.state == "absent"
-             and not vagrant_provisioner_plugin_setup_result.stdout
-                     is search("Successfully uninstalled .*" + plugin.name)
+        plugin.state == "present"
+        and not vagrant_provisioner_plugin_setup_result.stdout
+                is search("Installed the plugin .*" + plugin.name)
+        or plugin.state == "absent"
+           and not vagrant_provisioner_plugin_setup_result.stdout
+                   is search("Successfully uninstalled .*" + plugin.name)
       when: >-
         (plugin.state == "present"
          and not vagrant_provisioner_get_plugins_result.stdout

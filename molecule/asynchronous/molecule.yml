@@ -76,9 +76,10 @@ provisioner:
                 - "config.ssh.forward_x11 = true"
                 - "config.vm.boot_timeout = 900"
 
-          vagrant_provisioner_boxes_provisioning_method: sequential
+          vagrant_provisioner_boxes_provisioning_method: asynchronous
           vagrant_provisioner_box_state: present
-          vagrant_provisioner_vms_provisioning_method: sequential
+          vagrant_provisioner_vms_provisioning_method: asynchronous
+          vagrant_provisioner_vm_state: started
           vagrant_provisioner_in_memory_inventory: no
           vagrant_provisioner_inventory: /tmp/vagrant_inventory
 verifier:
